@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MamaSafe - Patient Search</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#005A9C",
+                        "secondary": "#2E8B57",
+                        "neutral-light": "#F5F7FA",
+                        "neutral-medium": "#6C757D",
+                        "neutral-dark": "#212529",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102213",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark">
+<div class="relative flex min-h-screen w-full flex-col group/design-root">
+<div class="flex flex-1">
+<!-- SideNavBar -->
+<aside class="flex h-screen min-h-[700px] w-64 flex-col justify-between border-r border-neutral-light/50 bg-white p-4 dark:bg-neutral-dark dark:border-neutral-dark/50 sticky top-0">
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-3 p-2">
+<div class="size-10 flex items-center justify-center text-secondary">
+<svg class="size-8" fill="currentColor" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_6_543)">
+<path d="M42.1739 20.1739L27.8261 5.82609C29.1366 7.13663 28.3989 10.1876 26.2002 13.7654C24.8538 15.9564 22.9595 18.3449 20.6522 20.6522C18.3449 22.9595 15.9564 24.8538 13.7654 26.2002C10.1876 28.3989 7.13663 29.1366 5.82609 27.8261L20.1739 42.1739C21.4845 43.4845 24.5355 42.7467 28.1133 40.548C30.3042 39.2016 32.6927 37.3073 35 35C37.3073 32.6927 39.2016 30.3042 40.548 28.1133C42.7467 24.5355 43.4845 21.4845 42.1739 20.1739Z"></path>
+<path clip-rule="evenodd" d="M7.24189 26.4066C7.31369 26.4411 7.64204 26.5637 8.52504 26.3738C9.59462 26.1438 11.0343 25.5311 12.7183 24.4963C14.7583 23.2426 17.0256 21.4503 19.238 19.238C21.4503 17.0256 23.2426 14.7583 24.4963 12.7183C25.5311 11.0343 26.1438 9.59463 26.3738 8.52504C26.5637 7.64204 26.4411 7.31369 26.4066 7.24189C26.345 7.21246 26.143 7.14535 25.6664 7.1918C24.9745 7.25925 23.9954 7.5498 22.7699 8.14278C20.3369 9.32007 17.3369 11.4915 14.4142 14.4142C11.4915 17.3369 9.32007 20.3369 8.14278 22.7699C7.5498 23.9954 7.25925 24.9745 7.1918 25.6664C7.14534 26.143 7.21246 26.345 7.24189 26.4066ZM29.9001 10.7285C29.4519 12.0322 28.7617 13.4172 27.9042 14.8126C26.465 17.1544 24.4686 19.6641 22.0664 22.0664C19.6641 24.4686 17.1544 26.465 14.8126 27.9042C13.4172 28.7617 12.0322 29.4519 10.7285 29.9001L21.5754 40.747C21.6001 40.7606 21.8995 40.931 22.8729 40.7217C23.9424 40.4916 25.3821 39.879 27.0661 38.8441C29.1062 37.5904 31.3734 35.7982 33.5858 33.5858C35.7982 31.3734 37.5904 29.1062 38.8441 27.0661C39.879 25.3821 40.4916 23.9425 40.7216 22.8729C40.931 21.8995 40.7606 21.6001 40.747 21.5754L29.9001 10.7285ZM29.2403 4.41187L43.5881 18.7597C44.9757 20.1473 44.9743 22.1235 44.6322 23.7139C44.2714 25.3919 43.4158 27.2666 42.252 29.1604C40.8128 31.5022 38.8165 34.012 36.4142 36.4142C34.012 38.8165 31.5022 40.8128 29.1604 42.252C27.2666 43.4158 25.3919 44.2714 23.7139 44.6322C22.1235 44.9743 20.1473 44.9757 18.7597 43.5881L4.41187 29.2403C3.29027 28.1187 3.08209 26.5973 3.21067 25.2783C3.34099 23.9415 3.8369 22.4852 4.54214 21.0277C5.96129 18.0948 8.43335 14.7382 11.5858 11.5858C14.7382 8.43335 18.0948 5.9613 21.0277 4.54214C22.4852 3.8369 23.9415 3.34099 25.2783 3.21067C26.5973 3.08209 28.1187 3.29028 29.2403 4.41187Z" fill-rule="evenodd"></path>
+</g>
+<defs>
+<clippath id="clip0_6_543"><rect fill="white" height="48" width="48"></rect></clippath>
+</defs>
+</svg>
+</div>
+<div class="flex flex-col">
+<h1 class="text-neutral-dark text-base font-bold leading-normal dark:text-neutral-light">MamaSafe</h1>
+<p class="text-neutral-medium text-sm font-normal leading-normal">Maternal Safety System</p>
+</div>
+</div>
+<nav class="flex flex-col gap-2 mt-4">
+<a class="flex items-center gap-3 px-3 py-2 text-neutral-dark dark:text-neutral-light rounded-lg hover:bg-neutral-light dark:hover:bg-white/10" href="#">
+<span class="material-symbols-outlined text-neutral-medium dark:text-neutral-light/70">dashboard</span>
+<p class="text-sm font-medium leading-normal">Dashboard</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary dark:bg-primary/20" href="#">
+<span class="material-symbols-outlined">person_search</span>
+<p class="text-sm font-medium leading-normal">Patient Search</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-neutral-dark dark:text-neutral-light rounded-lg hover:bg-neutral-light dark:hover:bg-white/10" href="#">
+<span class="material-symbols-outlined text-neutral-medium dark:text-neutral-light/70">person_add</span>
+<p class="text-sm font-medium leading-normal">Register New Patient</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-neutral-dark dark:text-neutral-light rounded-lg hover:bg-neutral-light dark:hover:bg-white/10" href="#">
+<span class="material-symbols-outlined text-neutral-medium dark:text-neutral-light/70">pie_chart</span>
+<p class="text-sm font-medium leading-normal">Reports</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-neutral-dark dark:text-neutral-light rounded-lg hover:bg-neutral-light dark:hover:bg-white/10" href="#">
+<span class="material-symbols-outlined text-neutral-medium dark:text-neutral-light/70">settings</span>
+<p class="text-sm font-medium leading-normal">Settings</p>
+</a>
+</nav>
+</div>
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 text-neutral-dark dark:text-neutral-light rounded-lg hover:bg-neutral-light dark:hover:bg-white/10" href="#">
+<span class="material-symbols-outlined text-neutral-medium dark:text-neutral-light/70">logout</span>
+<p class="text-sm font-medium leading-normal">Logout</p>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col">
+<!-- TopNavBar -->
+<header class="flex items-center justify-end whitespace-nowrap border-b border-solid border-neutral-light/50 bg-white dark:bg-neutral-dark dark:border-neutral-dark/50 px-8 py-3 sticky top-0 z-10">
+<div class="flex items-center gap-6">
+<button class="flex cursor-pointer items-center justify-center rounded-lg text-neutral-medium dark:text-neutral-light/70 h-10 w-10 hover:bg-neutral-light dark:hover:bg-white/10">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User avatar of Dr. Adama" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAOG_Hb79_fh3hGQqD8Ew39w7FnKXkIGiODNQ5hdUP5N2PCsxg3ClVBUT9a13dcaruYhqXlAcPuAyVAnazKxucCFmcseC3OXoWCrVeVl-6Tf9YHCTIr0bIoSbxgrymE-1lyywpeW2fOFcw582WYHqfR5D8bE1TPmiaj5on4rJs1hZJjpdkbxT8tNmDcVHEEtWCHqVsfBOOmRi9J8p9aydYbL9NdLEq0YXur2fk5z5RK3BxVWmfw_-lMZAJtVs-x81dVZridPfHMx0Y");'></div>
+<div class="flex flex-col text-sm">
+<p class="font-semibold text-neutral-dark dark:text-neutral-light">Dr. Adama</p>
+<p class="text-neutral-medium">Supervising Doctor</p>
+</div>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="flex-1 p-8 lg:p-10">
+<div class="mx-auto max-w-4xl">
+<!-- PageHeading -->
+<div class="mb-8">
+<h1 class="text-neutral-dark dark:text-neutral-light text-4xl font-black leading-tight tracking-[-0.033em]">Find a Patient</h1>
+<p class="text-neutral-medium text-base font-normal leading-normal mt-2">Enter at least one piece of information to find a patient.</p>
+</div>
+<!-- Search Form Card -->
+<div class="bg-white dark:bg-neutral-dark rounded-xl border border-neutral-light/50 dark:border-neutral-dark/50 shadow-sm p-6 lg:p-8">
+<form class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Patient ID -->
+<div class="flex flex-col">
+<label class="text-neutral-dark dark:text-neutral-light text-base font-medium leading-normal pb-2" for="patient-id">Patient ID</label>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-neutral-dark dark:text-neutral-light focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-[#dbe6dd] bg-white dark:bg-neutral-dark/50 dark:border-neutral-dark/80 focus:border-primary h-14 placeholder:text-neutral-medium/70 p-[15px] text-base font-normal leading-normal" id="patient-id" placeholder="e.g., MS-12345" type="text" value=""/>
+</div>
+<!-- Phone Number -->
+<div class="flex flex-col">
+<label class="text-neutral-dark dark:text-neutral-light text-base font-medium leading-normal pb-2" for="phone-number">Phone Number</label>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-neutral-dark dark:text-neutral-light focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-[#dbe6dd] bg-white dark:bg-neutral-dark/50 dark:border-neutral-dark/80 focus:border-primary h-14 placeholder:text-neutral-medium/70 p-[15px] text-base font-normal leading-normal" id="phone-number" placeholder="e.g., 2567..." type="text" value=""/>
+</div>
+<!-- Full Name -->
+<div class="flex flex-col col-span-1 md:col-span-2">
+<label class="text-neutral-dark dark:text-neutral-light text-base font-medium leading-normal pb-2" for="full-name">Full Name</label>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-neutral-dark dark:text-neutral-light focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-[#dbe6dd] bg-white dark:bg-neutral-dark/50 dark:border-neutral-dark/80 focus:border-primary h-14 placeholder:text-neutral-medium/70 p-[15px] text-base font-normal leading-normal" id="full-name" placeholder="e.g., Jane Doe" type="text" value=""/>
+</div>
+<!-- Actions -->
+<div class="flex items-center justify-end gap-4 col-span-1 md:col-span-2 mt-4">
+<button class="text-neutral-medium font-medium text-sm px-4 py-2 rounded-lg hover:bg-neutral-light dark:hover:bg-white/10" type="reset">Clear Form</button>
+<button class="flex items-center justify-center gap-2 h-12 px-6 bg-primary text-white rounded-lg font-bold text-base hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary" type="submit">
+<span class="material-symbols-outlined">search</span>
+                                        Search Patient
+                                    </button>
+</div>
+</form>
+</div>
+<!-- Recent Patients Panel -->
+<div class="mt-12">
+<h2 class="text-2xl font-bold text-neutral-dark dark:text-neutral-light tracking-tight mb-4">Recent Patients</h2>
+<div class="space-y-4">
+<!-- Recent Patient Item 1 -->
+<div class="flex items-center justify-between p-4 bg-white dark:bg-neutral-dark rounded-lg border border-neutral-light/50 dark:border-neutral-dark/50 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="Patient avatar for Amina Okoro" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBSG-hORJHl7JFKKGWNOQ7NZ4jcmnCfdAlKbsS2Ix4OGxq7gcn-SK2bZgPYMXBgtwPJ2Y9E_wXPeFeWJbr9CYFkzCiOrWivoEmr-sj8JIR32Lu1Qvc-tBDSORoWT5O12u6Bx7SbERw_wx65-zEA2SZHNyH5c9MfIbH0xSqaYCbn32mvT0W3lShDUQ35ZnQh9-QELf2SF3lVOrYJsCl7xxI7hfhoaaDA7rsZ38_POxOu7xmGNfqpiYSiPqLd9ZSOGyMKgX6wDaFD3sw");'></div>
+<div>
+<p class="font-semibold text-neutral-dark dark:text-neutral-light">Amina Okoro</p>
+<p class="text-sm text-neutral-medium">ID: MS-12345</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-sm text-neutral-medium">Viewed 2 hours ago</p>
+</div>
+</div>
+<!-- Recent Patient Item 2 -->
+<div class="flex items-center justify-between p-4 bg-white dark:bg-neutral-dark rounded-lg border border-neutral-light/50 dark:border-neutral-dark/50 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="Patient avatar for Fatima Bello" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD8fKSY0iEMNJeR6_WD_i-COYa6fSbQS7tyzAP1DR98vKuzTFaRPQpQTHeyZUPPKO0YqLyFodXgm7WZnzivQZRA4p7W3H3hgwvcJYs97Xrm342D1oiLGTCsohJoKneshdszVgU_HPAMiqHBE_7y7M_mjt-U7gq4bApAEuXRJzJ6XPUSBmDDQ63hi6fD42m39pSfLZZHxsX3TQVLy2weSOm-fmSati-S0OXKhRZOdBr48qEVufJz__DgoPJTIHWauU-H_uJSA57I5rc");'></div>
+<div>
+<p class="font-semibold text-neutral-dark dark:text-neutral-light">Fatima Bello</p>
+<p class="text-sm text-neutral-medium">ID: MS-67890</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-sm text-neutral-medium">Viewed yesterday</p>
+</div>
+</div>
+<!-- Recent Patient Item 3 -->
+<div class="flex items-center justify-between p-4 bg-white dark:bg-neutral-dark rounded-lg border border-neutral-light/50 dark:border-neutral-dark/50 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="Patient avatar for Chidinma Eze" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDnH54rNSSqL9UtX35nHzAungHrVZbuhdyLPrGFvHCBiY2gr0QGFdVYzl9U0wgcwwyH_paJKxkpmTkxTIEsQwhkddy26YaRhYwENpYUKbR-eynBVZIQ32_KM4QS1TDR1FfMD0O1MjEDYKuWDrj__bFQb_f3v9hU31hRKftH3epyFNxk6LHRnTGjWzTszbmPACSvPGtvogGDTwnNiJf-X7uzjoY0OGOy5RG9uF2oeQfk7PjKjwhwiKzOpXu-Yrp2rtCs9-DwW3I5tDo");'></div>
+<div>
+<p class="font-semibold text-neutral-dark dark:text-neutral-light">Chidinma Eze</p>
+<p class="text-sm text-neutral-medium">ID: MS-11223</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-sm text-neutral-medium">Viewed 3 days ago</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

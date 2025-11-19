@@ -1,0 +1,24 @@
+.container {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.safe {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.caution {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.danger {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.alternatives {
+  margin-top: 1rem;
+}
