@@ -1,0 +1,971 @@
+openapi: 3.0.3
+info:
+  title: Dorra EMR API
+  version: 1.0.0 (v1)
+  description: |-
+    API documentation for Dorra EMR
+
+    View Swagger docs [here](https://hackathon-api.aheadafrica.org/docs/swagger)
+paths:
+  /v1/ai/emr:
+    post:
+      operationId: ai_emr_create
+      description: |-
+        Create medical records (encounter, appointments) for a patient via a prompt.
+        Include the patient `id` and `prompt` in the request and let Dorra help you detect the type of action
+        the prompt is conveying. This endpoint returns the resource detected by Dorra. The available resources are:
+        - Appointment
+        - Encounter
+        - Error: the prompt does not fall within the scope Dorra can handle.
+
+
+        See the `appointments` and `encounters` sections of this documentation to view the object stucture.
+
+
+        You can preview the behaviour of this endpoint in the [playground](https://playground.aheadafrica.org).
+        Simply type your prompt in the playground and see how Dorra will respond.
+      summary: AI EMR
+      tags:
+      - ai
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientInference'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatientInference'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatientInference'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PropmtResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadPropmtResponse'
+          description: ''
+  /v1/ai/patient:
+    post:
+      operationId: ai_patient_create
+      description: |-
+        Create a patient via prompt. This endpoint allows you to create a patient by
+        sending a `prompt`.
+        Returns the `id` of the created patient.
+        You can preview the behaviour of this endpoint in the [playground](https://playground.aheadafrica.org)
+      summary: AI create Patient
+      tags:
+      - ai
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePatientInference'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreatePatientInference'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreatePatientInference'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedPatientResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestResponse'
+          description: ''
+  /v1/appointments:
+    get:
+      operationId: appointments_list
+      description: List all appointments created in your team
+      summary: List all appointments
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - appointments
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAppointmentList'
+          description: ''
+  /v1/appointments/{id}:
+    get:
+      operationId: appointments_retrieve
+      description: Retrieve appointment details
+      summary: Retrieve an appointment
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - appointments
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+    patch:
+      operationId: appointments_partial_update
+      description: Update appointment details. This endpoint supports partial updates,
+        meaning that only the fields to be modified need to be included in the request.
+      summary: Update an appointment
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointment'
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdatedResourceResponse'
+          description: ''
+    delete:
+      operationId: appointments_destroy
+      description: Delete an appointment
+      summary: Delete a patient
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - appointments
+      security:
+      - tokenAuth: []
+      responses:
+        '204':
+          description: No response body
+  /v1/encounters:
+    get:
+      operationId: encounters_list
+      description: List all encounters created in your team
+      summary: List all encounters
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - encounters
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEncounterList'
+          description: ''
+  /v1/encounters/{id}:
+    get:
+      operationId: encounters_retrieve
+      description: Retrieve encounter details
+      summary: Retrieve an encounter
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - encounters
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Encounter'
+          description: ''
+  /v1/patients:
+    get:
+      operationId: patients_list
+      description: List all patients in your team
+      summary: List all patients
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - patients
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPatientList'
+          description: ''
+  /v1/patients/{id}:
+    get:
+      operationId: patients_retrieve
+      description: Retrieve a patient in your team
+      summary: Retrieve a patient
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - patients
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+          description: ''
+    patch:
+      operationId: patients_partial_update
+      description: Update patient details. This endpoint allows partial updates, so
+        only the fields that require modification need to be included in the request.
+      summary: Update a patient
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - patients
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPatient'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPatient'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPatient'
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdatedResourceResponse'
+          description: ''
+    delete:
+      operationId: patients_destroy
+      description: Delete a patient
+      summary: Delete a patient
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - patients
+      security:
+      - tokenAuth: []
+      responses:
+        '204':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletedResourceResponse'
+          description: ''
+  /v1/patients/{id}/appointments:
+    get:
+      operationId: patients_appointments_list
+      description: List all appointments for a patient
+      summary: List patient appointments
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - patients
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAppointmentList'
+          description: ''
+  /v1/patients/{id}/encounters:
+    get:
+      operationId: patients_encounters_list
+      description: List all encounters for a patient
+      summary: List patient encounters
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - patients
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEncounterList'
+          description: ''
+  /v1/patients/create:
+    post:
+      operationId: patients_create_create
+      description: Create a patient via standard endpoint
+      summary: Create Patient
+      tags:
+      - patients
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePatient'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreatePatient'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreatePatient'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedPatientResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthenticatedResponse'
+          description: ''
+components:
+  schemas:
+    Appointment:
+      type: object
+      description: encounter serializer
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        date:
+          type: string
+          format: date-time
+        reason:
+          type: string
+          nullable: true
+        summary:
+          type: string
+          nullable: true
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        patient:
+          type: integer
+          nullable: true
+      required:
+      - created_at
+      - id
+      - updated_at
+    BadPropmtResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          default: false
+        status_code:
+          type: integer
+          default: 400
+        message:
+          type: string
+          default: Invalid request. please check the prompt and try again.
+        resource:
+          $ref: '#/components/schemas/ResourceEnum'
+      required:
+      - resource
+    BadRequestResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          default: false
+        status_code:
+          type: integer
+          default: 400
+        message:
+          type: string
+          default: Invalid request. please check the prompt and try again.
+    CreatePatient:
+      type: object
+      description: Patient serializer
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        allergies:
+          type: array
+          items:
+            type: string
+        first_name:
+          type: string
+          maxLength: 100
+        last_name:
+          type: string
+          nullable: true
+          maxLength: 100
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+        gender:
+          $ref: '#/components/schemas/GenderEnum'
+        address:
+          type: string
+        phone_number:
+          type: string
+          maxLength: 20
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - first_name
+      - gender
+      - id
+      - updated_at
+    CreatePatientInference:
+      type: object
+      properties:
+        prompt:
+          type: string
+      required:
+      - prompt
+    CreatedPatientResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          default: true
+        status_code:
+          type: integer
+          default: 201
+        message:
+          type: string
+          default: success
+        id:
+          type: integer
+          default: 67
+    DeletedResourceResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          default: true
+        status_code:
+          type: integer
+          default: 204
+        message:
+          type: string
+          default: success
+        id:
+          type: integer
+          default: 67
+    Encounter:
+      type: object
+      description: encounter serializer
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        weight:
+          type: number
+          format: double
+          nullable: true
+        height:
+          type: number
+          format: double
+          nullable: true
+        bmi:
+          type: number
+          format: double
+          nullable: true
+        temperature:
+          type: number
+          format: double
+          nullable: true
+        symptoms: {}
+        diagnosis:
+          type: string
+        note:
+          type: string
+        summary:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        patient:
+          type: integer
+          nullable: true
+      required:
+      - created_at
+      - diagnosis
+      - id
+      - note
+    GenderEnum:
+      enum:
+      - Male
+      - Female
+      - Other
+      type: string
+      description: |-
+        * `Male` - Male
+        * `Female` - Female
+        * `Other` - Other
+    PaginatedAppointmentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Appointment'
+    PaginatedEncounterList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Encounter'
+    PaginatedPatientList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Patient'
+    PatchedAppointment:
+      type: object
+      description: encounter serializer
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        date:
+          type: string
+          format: date-time
+        reason:
+          type: string
+          nullable: true
+        summary:
+          type: string
+          nullable: true
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        patient:
+          type: integer
+          nullable: true
+    PatchedPatient:
+      type: object
+      description: Patient serializer
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        unique_id:
+          type: string
+          maxLength: 10
+        first_name:
+          type: string
+          maxLength: 100
+        last_name:
+          type: string
+          nullable: true
+          maxLength: 100
+        full_name:
+          type: string
+          nullable: true
+          maxLength: 200
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+        gender:
+          $ref: '#/components/schemas/GenderEnum'
+        address:
+          type: string
+        phone_number:
+          type: string
+          maxLength: 20
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        allergies: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        team:
+          type: integer
+          nullable: true
+    Patient:
+      type: object
+      description: Patient serializer
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        unique_id:
+          type: string
+          maxLength: 10
+        first_name:
+          type: string
+          maxLength: 100
+        last_name:
+          type: string
+          nullable: true
+          maxLength: 100
+        full_name:
+          type: string
+          nullable: true
+          maxLength: 200
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+        gender:
+          $ref: '#/components/schemas/GenderEnum'
+        address:
+          type: string
+        phone_number:
+          type: string
+          maxLength: 20
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        allergies: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        team:
+          type: integer
+          nullable: true
+      required:
+      - created_at
+      - first_name
+      - gender
+      - id
+      - unique_id
+      - updated_at
+    PatientInference:
+      type: object
+      properties:
+        prompt:
+          type: string
+        patient:
+          type: integer
+      required:
+      - patient
+      - prompt
+    PropmtResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          default: true
+        status_code:
+          type: integer
+          default: 201
+        message:
+          type: string
+        resource:
+          $ref: '#/components/schemas/ResourceEnum'
+      required:
+      - message
+      - resource
+    ResourceEnum:
+      enum:
+      - Appointment
+      - Encounter
+      - Error
+      type: string
+      description: |-
+        * `Appointment` - Appointment
+        * `Encounter` - Encounter
+        * `Error` - Error
+    StatusEnum:
+      enum:
+      - active
+      - completed
+      type: string
+      description: |-
+        * `active` - Active
+        * `completed` - Completed
+    UnauthenticatedResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          default: false
+        status_code:
+          type: integer
+          default: 401
+        message:
+          type: string
+        details:
+          type: string
+      required:
+      - details
+      - message
+    UpdatedResourceResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          default: true
+        status_code:
+          type: integer
+          default: 200
+        message:
+          type: string
+          default: success
+        id:
+          type: integer
+          default: 67
+  securitySchemes:
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"
