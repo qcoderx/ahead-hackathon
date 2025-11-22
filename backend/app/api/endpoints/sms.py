@@ -70,18 +70,29 @@ def format_risk_response(risk_data: dict, language: str = "en") -> str:
 
     return response[:160]  # SMS limit
 
+@router.get("/test")
+async def test_sms():
+    """Test endpoint to verify SMS service is running"""
+    return {"status": "SMS service active", "twilio_configured": twilio_client is not None}
+
 @router.post("/webhook")
 async def sms_webhook(
+    request: Request,
     Body: str = Form(...),
     From: str = Form(...)
 ):
     """
     Comprehensive SMS webhook handling all MamaSafe commands
     """
+    # Log all form data for debugging
+    form_data = await request.form()
+    logger.info(f"Webhook received - Form data: {dict(form_data)}")
+    
     text = Body.strip()
     from_number = From.strip()
 
     logger.info(f"SMS from {from_number}: {text}")
+    print(f"DEBUG: SMS from {from_number}: {text}")  # Console logging
 
     resp = MessagingResponse()
 
@@ -262,7 +273,10 @@ HELP - This help"""
             resp.message(help_text[:160])
 
         else:
-            resp.message("Unknown command. Text HELP for available commands.")
+            # For testing - echo back the message
+            resp.message(f"Received: {text}. Unknown command. Text HELP for available commands.")
+            logger.info(f"Unknown command processed: {command}")
+            print(f"DEBUG: Unknown command: {command}, args: {args}")
 
     except Exception as e:
         logger.error(f"SMS processing error: {e}")
