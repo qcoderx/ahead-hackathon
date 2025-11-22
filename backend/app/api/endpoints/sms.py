@@ -10,7 +10,7 @@ from datetime import date, datetime
 import logging
 import re
 from twilio.twiml.messaging_response import MessagingResponse
-from twilio.rest import Client
+from app.services.termii_sms import termii_service
 
 class SMSTestRequest(BaseModel):
     Body: str
@@ -21,28 +21,12 @@ class SMSTestRequest(BaseModel):
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-# Initialize Twilio client
-twilio_client = None
-if settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN:
-    twilio_client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+# SMS service available
+sms_available = bool(settings.TERMII_API_KEY)
 
-def send_sms(to: str, message: str) -> bool:
-    """Send SMS using Twilio"""
-    if not twilio_client:
-        logger.error("Twilio client not initialized")
-        return False
-
-    try:
-        message = twilio_client.messages.create(
-            body=message,
-            from_=settings.TWILIO_PHONE_NUMBER,
-            to=to
-        )
-        logger.info(f"SMS sent to {to}: {message.sid}")
-        return True
-    except Exception as e:
-        logger.error(f"Failed to send SMS to {to}: {e}")
-        return False
+async def send_sms(to: str, message: str) -> bool:
+    """Send SMS using Termii"""
+    return await termii_service.send_sms(to, message)
 
 def parse_command(text: str) -> tuple:
     """Parse SMS command and return (command, args)"""
@@ -81,7 +65,7 @@ def format_risk_response(risk_data: dict, language: str = "en") -> str:
 @router.get("/test")
 async def test_sms():
     """Test endpoint to verify SMS service is running"""
-    return {"status": "SMS service active", "twilio_configured": twilio_client is not None}
+    return {"status": "SMS service active", "termii_configured": sms_available}
 
 @router.post("/test-json")
 async def test_sms_json(sms_data: SMSTestRequest):
@@ -189,7 +173,7 @@ async def sms_webhook(request: Request):
 
                     # Send welcome SMS to patient
                     welcome_msg = f"Welcome to MamaSafe! You're registered for pregnancy care. Your ID: {patient_id}. Reply HELP for options."
-                    send_sms(phone, welcome_msg)
+                    await send_sms(phone, welcome_msg)
                 else:
                     resp.message("Patient registration failed. Please try again.")
 
@@ -260,7 +244,7 @@ async def sms_webhook(request: Request):
                     patient = await dorra_emr.get_patient(int(patient_id))
                     if patient and patient.get("phone"):
                         patient_msg = f"Appointment: {appt_date} at {appt_time} for {appt_type}. Reply CONFIRM or RESCHEDULE"
-                        send_sms(patient.get("phone"), patient_msg)
+                        await send_sms(patient.get("phone"), patient_msg)
                 else:
                     resp.message("Appointment creation failed.")
 
@@ -290,7 +274,7 @@ async def sms_webhook(request: Request):
 
                 patient = await dorra_emr.get_patient(int(patient_id))
                 if patient and patient.get("phone"):
-                    send_sms(patient.get("phone"), f"ALERT: {alert_msg}")
+                    await send_sms(patient.get("phone"), f"ALERT: {alert_msg}")
                     resp.message(f"Alert sent to patient {patient_id}")
                 else:
                     resp.message("Patient not found or no phone number")

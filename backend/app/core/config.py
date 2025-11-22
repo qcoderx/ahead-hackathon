@@ -20,5 +20,9 @@ class Settings:
     TWILIO_ACCOUNT_SID: str = os.getenv("TWILIO_ACCOUNT_SID", "")
     TWILIO_AUTH_TOKEN: str = os.getenv("TWILIO_AUTH_TOKEN", "")
     TWILIO_PHONE_NUMBER: str = os.getenv("TWILIO_PHONE_NUMBER", "")
+    
+    # Termii SMS Configuration
+    TERMII_API_KEY: str = os.getenv("TERMII_API_KEY", "")
+    TERMII_SENDER_ID: str = os.getenv("TERMII_SENDER_ID", "MamaSafe")
 
 settings = Settings()
