@@ -23,6 +23,6 @@ class Settings:
     
     # Termii SMS Configuration
     TERMII_API_KEY: str = os.getenv("TERMII_API_KEY", "")
-    TERMII_SENDER_ID: str = os.getenv("TERMII_SENDER_ID", "MamaSafe")
+    TERMII_SENDER_ID: str = os.getenv("TERMII_SENDER_ID", "N-Alert")
 
 settings = Settings()
