@@ -1,4 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request, Form, Response
+from pydantic import BaseModel
+from typing import Optional
 from app.services.dorra_emr import dorra_emr
 from app.services.pharmavigilance import pharma_service
 from app.services.language import language_service
@@ -9,6 +11,12 @@ import logging
 import re
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
+
+class SMSTestRequest(BaseModel):
+    Body: str
+    From: str
+    To: Optional[str] = None
+    MessageSid: Optional[str] = None
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -74,6 +82,27 @@ def format_risk_response(risk_data: dict, language: str = "en") -> str:
 async def test_sms():
     """Test endpoint to verify SMS service is running"""
     return {"status": "SMS service active", "twilio_configured": twilio_client is not None}
+
+@router.post("/test-json")
+async def test_sms_json(sms_data: SMSTestRequest):
+    """Test SMS webhook with JSON body for easier Postman testing"""
+    logger.info(f"JSON SMS test from {sms_data.From}: {sms_data.Body}")
+    
+    command, args = parse_command(sms_data.Body)
+    
+    if command == "HELP":
+        response_text = "MamaSafe SMS Test - HELP command received successfully!"
+    else:
+        response_text = f"Test received: {sms_data.Body} from {sms_data.From}"
+    
+    return {
+        "status": "success",
+        "received_body": sms_data.Body,
+        "received_from": sms_data.From,
+        "command": command,
+        "args": args,
+        "response": response_text
+    }
 
 @router.post("/webhook")
 async def sms_webhook(
