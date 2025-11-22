@@ -121,7 +121,11 @@ async def sms_webhook(request: Request):
             logger.error(f"Missing required fields - Body: {text}, From: {from_number}")
             resp = MessagingResponse()
             resp.message("Error: Missing message data")
-            return Response(content=str(resp), media_type="application/xml")
+            return Response(
+                content=str(resp), 
+                media_type="application/xml",
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
         
         logger.info(f"SMS from {from_number}: {text}")
         print(f"DEBUG: SMS from {from_number}: {text}")
@@ -129,7 +133,11 @@ async def sms_webhook(request: Request):
         logger.error(f"Error parsing form data: {e}")
         resp = MessagingResponse()
         resp.message("Service error. Try again.")
-        return Response(content=str(resp), media_type="application/xml")
+        return Response(
+            content=str(resp), 
+            media_type="application/xml",
+            headers={"Access-Control-Allow-Origin": "*"}
+        )
 
     resp = MessagingResponse()
 
@@ -319,4 +327,8 @@ HELP - This help"""
         logger.error(f"SMS processing error: {e}")
         resp.message("Service temporarily unavailable. Try again later.")
 
-    return Response(content=str(resp), media_type="application/xml")
+    return Response(
+        content=str(resp), 
+        media_type="application/xml",
+        headers={"Access-Control-Allow-Origin": "*"}
+    )
