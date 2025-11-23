@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MamaSafe - Patient Medical History</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4A90E2",
+                        "background-light": "#F2F2F7",
+                        "background-dark": "#102213",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="flex flex-col w-64 bg-white dark:bg-gray-800 shadow-md">
+<div class="flex flex-col h-full justify-between p-4">
+<div class="flex flex-col gap-4">
+<div class="flex gap-3 items-center">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="MamaSafe logo with abstract pattern" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAfGd-ciEO3gPL0w5pnraplPU8_G8ZbsVR498up3xPPXC983JCE0hBF0l_vcs6ORDNgPu5ecZI2qSGudWdNhsJXPjFKPlNUuCKxoDPS5YFTnXvWKD4uM-4l2GP4Le4EgFpzfM2LcZvyuKwmtAFMI83DjBqM3T05dlQeyA4rMTUhlukP1fGuRCsRt_-VFpP00I9xi2wApbIjGcQMRrcsdxsDcECYy2MRJrMXi7qSbMLDuR27q2qPPoxbCf3Vhc-YGa78KkkdXVo4BTM");'></div>
+<div class="flex flex-col">
+<h1 class="text-gray-900 dark:text-white text-base font-bold leading-normal">MamaSafe</h1>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Maternal Safety System</p>
+</div>
+</div>
+<nav class="flex flex-col gap-2 mt-4">
+<a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" href="#">
+<span class="material-symbols-outlined text-gray-800 dark:text-gray-200">dashboard</span>
+<p class="text-sm font-medium leading-normal">Dashboard</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary dark:text-white dark:bg-primary/30" href="#">
+<span class="material-symbols-outlined font-bold">groups</span>
+<p class="text-sm font-bold leading-normal">Patients</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" href="#">
+<span class="material-symbols-outlined text-gray-800 dark:text-gray-200">medication</span>
+<p class="text-sm font-medium leading-normal">Medications</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" href="#">
+<span class="material-symbols-outlined text-gray-800 dark:text-gray-200">bar_chart</span>
+<p class="text-sm font-medium leading-normal">Reports</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" href="#">
+<span class="material-symbols-outlined text-gray-800 dark:text-gray-200">settings</span>
+<p class="text-sm font-medium leading-normal">Settings</p>
+</a>
+</nav>
+</div>
+<div class="flex flex-col gap-4">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]">
+<span class="truncate">New Patient</span>
+</button>
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" href="#">
+<span class="material-symbols-outlined text-gray-800 dark:text-gray-200">help</span>
+<p class="text-sm font-medium leading-normal">Help &amp; Support</p>
+</a>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 p-8 overflow-y-auto">
+<div class="max-w-7xl mx-auto">
+<!-- MetaText / Alert Banner -->
+<div class="bg-yellow-100 dark:bg-yellow-900/40 border-l-4 border-yellow-500 text-yellow-800 dark:text-yellow-200 p-4 rounded-r-lg mb-6" role="alert">
+<p class="text-sm font-normal leading-normal">Data from Dorra EMR, last updated: 24/07/2024 10:30 AM. This is a read-only view.</p>
+</div>
+<!-- Breadcrumbs -->
+<div class="flex flex-wrap gap-2 mb-4">
+<a class="text-primary dark:text-blue-300 text-base font-medium leading-normal" href="#">Patients</a>
+<span class="text-gray-500 dark:text-gray-400 text-base font-medium leading-normal">/</span>
+<a class="text-primary dark:text-blue-300 text-base font-medium leading-normal" href="#">Jane Doe</a>
+<span class="text-gray-500 dark:text-gray-400 text-base font-medium leading-normal">/</span>
+<span class="text-gray-800 dark:text-white text-base font-medium leading-normal">Medical History</span>
+</div>
+<!-- ProfileHeader -->
+<header class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm mb-6">
+<div class="flex w-full flex-col gap-4 @container @[520px]:flex-row @[520px]:justify-between @[520px]:items-center">
+<div class="flex gap-4 items-center">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full min-h-24 w-24" data-alt="Profile photo of Jane Doe" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBCk0NxQNlUorGf-jmCMrY9OppoPfUVaig5ppuPXtq7f2DGuUzcrdt2NJPt-KSdm-oC0baYozfpFKSHBx-2ZeFapl8kOsM5QntIbfRlz3aKsnxISiq1BYPsR_pRvYTPIGlFL9jrBTnvoLG28eFnm0jjryKFlmRg73n78iRVyfj8dMsiYwJ6GNpbtx0yvf0mVMeE8BP89o9xvwFyzk-52xBzYJvlmOqk7HQkRW6WVjGk2Dx74HRybavNHctAyoymqIkX22m4ppE8nns");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-gray-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em]">Jane Doe, 32</p>
+<p class="text-gray-500 dark:text-gray-400 text-base font-normal leading-normal">Patient ID: MS-12345</p>
+<p class="text-gray-500 dark:text-gray-400 text-base font-normal leading-normal">DOB: 15/08/1991</p>
+</div>
+</div>
+<div class="flex w-full max-w-[480px] gap-3 @[480px]:w-auto">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm font-bold leading-normal tracking-[0.015em] flex-1 @[480px]:flex-auto">
+<span class="truncate">Print Summary</span>
+</button>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] flex-1 @[480px]:flex-auto">
+<span class="truncate">Back to List</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Chips / Status Tags -->
+<div class="flex gap-3 mb-6 flex-wrap">
+<div class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200 px-4">
+<p class="text-sm font-medium leading-normal">Pregnant</p>
+</div>
+<div class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200 px-4">
+<p class="text-sm font-medium leading-normal">High-Risk</p>
+</div>
+<div class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200 px-4">
+<p class="text-sm font-medium leading-normal">Allergy: Penicillin</p>
+</div>
+</div>
+<!-- Tabbed Navigation and Content -->
+<div class="flex flex-col lg:flex-row gap-8">
+<!-- Navigation on the left -->
+<div class="w-full lg:w-1/4">
+<ul class="flex lg:flex-col bg-white dark:bg-gray-800 p-2 rounded-xl shadow-sm space-y-1">
+<li class="w-full"><a class="block py-2 px-4 rounded-lg bg-primary/20 text-primary dark:text-white dark:bg-primary/30 text-sm font-bold" href="#overview">Overview</a></li>
+<li class="w-full"><a class="block py-2 px-4 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm font-medium" href="#visit-history">Visit History</a></li>
+<li class="w-full"><a class="block py-2 px-4 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm font-medium" href="#allergies">Allergies</a></li>
+<li class="w-full"><a class="block py-2 px-4 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm font-medium" href="#medical-history">Medical History</a></li>
+</ul>
+</div>
+<!-- Content on the right -->
+<div class="w-full lg:w-3/4">
+<!-- Overview Section -->
+<div class="space-y-6" id="overview">
+<h2 class="text-xl font-bold text-gray-900 dark:text-white">Pregnancy Status</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+<div>
+<p class="text-sm text-gray-500 dark:text-gray-400">Status</p>
+<p class="text-base font-medium text-gray-800 dark:text-gray-200">Pregnant</p>
+</div>
+<div>
+<p class="text-sm text-gray-500 dark:text-gray-400">Gestational Age</p>
+<p class="text-base font-medium text-gray-800 dark:text-gray-200">28 weeks, 3 days</p>
+</div>
+<div>
+<p class="text-sm text-gray-500 dark:text-gray-400">Estimated Due Date (EDD)</p>
+<p class="text-base font-medium text-gray-800 dark:text-gray-200">15/10/2024</p>
+</div>
+<div>
+<p class="text-sm text-gray-500 dark:text-gray-400">Past Obstetric History</p>
+<p class="text-base font-medium text-gray-800 dark:text-gray-200">G2 P1 A0</p>
+</div>
+</div>
+<h2 class="text-xl font-bold text-gray-900 dark:text-white pt-4">Visit History (Recent)</h2>
+<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+<ul class="divide-y divide-gray-200 dark:divide-gray-700">
+<li class="p-4 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-700/50">
+<div>
+<p class="font-semibold text-gray-800 dark:text-gray-200">Routine Antenatal Check-up</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Dr. Emily Carter - St. Luke's Clinic</p>
+</div>
+<div class="text-right">
+<p class="text-sm font-medium text-gray-600 dark:text-gray-300">15/07/2024</p>
+</div>
+</li>
+<li class="p-4 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-700/50">
+<div>
+<p class="font-semibold text-gray-800 dark:text-gray-200">Ultrasound Scan</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Radiology Dept - St. Luke's Clinic</p>
+</div>
+<div class="text-right">
+<p class="text-sm font-medium text-gray-600 dark:text-gray-300">01/06/2024</p>
+</div>
+</li>
+</ul>
+</div>
+<h2 class="text-xl font-bold text-gray-900 dark:text-white pt-4">Medical History</h2>
+<div class="space-y-4">
+<!-- Accordion Panel 1 -->
+<details class="group bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+<summary class="flex cursor-pointer list-none items-center justify-between p-4 font-medium text-gray-900 dark:text-white">
+<span>Chronic Conditions</span>
+<span class="transition group-open:rotate-180">
+<span class="material-symbols-outlined">expand_more</span>
+</span>
+</summary>
+<div class="border-t border-gray-200 dark:border-gray-700 p-4 text-gray-600 dark:text-gray-300">
+<p>Hypertension, diagnosed 2021. Managed with medication.</p>
+</div>
+</details>
+<!-- Accordion Panel 2 -->
+<details class="group bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+<summary class="flex cursor-pointer list-none items-center justify-between p-4 font-medium text-gray-900 dark:text-white">
+<span>Surgical History</span>
+<span class="transition group-open:rotate-180">
+<span class="material-symbols-outlined">expand_more</span>
+</span>
+</summary>
+<div class="border-t border-gray-200 dark:border-gray-700 p-4 text-gray-600 dark:text-gray-300">
+<p>Appendectomy, 2015. No complications.</p>
+</div>
+</details>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>
