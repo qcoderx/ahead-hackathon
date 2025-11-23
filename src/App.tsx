@@ -1,3 +1,29 @@
+import { useState, useEffect } from 'react'
+import LandingPage from './LandingPage'
+import LanguageSelection from './components/screens/LanguageSelection'
+import AuthScreen from './components/screens/AuthScreen'
+import RegistrationScreen from './components/screens/RegistrationScreen'
+import OfflineAccessScreen from './components/screens/OfflineAccessScreen'
+import PatientPortalScreen from './components/screens/PatientPortalScreen'
+import DashboardScreen from './components/screens/DashboardScreen'
+import SingleDrugCheckScreen from './components/screens/SingleDrugCheckScreen'
+import DrugAnalysisScreen from './components/screens/DrugAnalysisScreen'
+import InteractionResultsScreen from './components/screens/InteractionResultsScreen'
+import MedicationResultsScreen from './components/screens/MedicationResultsScreen'
+import { PatientRegistrationScreen } from './components/screens/PatientRegistrationScreen'
+import { PatientManagementScreen } from './components/screens/PatientManagementScreen'
+import PatientProfileScreen from './components/screens/PatientProfileScreen'
+import AppointmentsScreen from './components/screens/AppointmentsScreen'
+import ScheduleAppointmentScreen from './components/screens/ScheduleAppointmentScreen'
+import AppointmentDetailsScreen from './components/screens/AppointmentDetailsScreen'
+import { useTranslation } from './contexts/TranslationContext'
+import { useAuth } from './hooks/useAuth'
+import { useDashboardStats } from './hooks/useDashboardStats'
+import { usePatients } from './hooks/usePatients'
+import LoadingScreen from './components/ui/LoadingScreen'
+
+/**
+ * Real API Integration - No Mock Data
  */
 function App() {
   const [showLanding, setShowLanding] = useState(true)
@@ -19,11 +45,15 @@ function App() {
   const [showScheduleAppointment, setShowScheduleAppointment] = useState(false)
   const [showAppointmentDetails, setShowAppointmentDetails] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null)
-  const [currentAnalysis, setCurrentAnalysis] = useState(mockInteractionAnalysis)
+  const [currentAnalysis, setCurrentAnalysis] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [loadingMessage, setLoadingMessage] = useState('')
   const { } = useTranslation()
   const { isAuthenticated, logout, user } = useAuth()
+  
+  // Real data hooks
+  const { stats: dashboardStats, loading: statsLoading } = useDashboardStats()
+  const { patients, loading: patientsLoading } = usePatients()
 
   // Check authentication state on app load
   useEffect(() => {
@@ -131,7 +161,6 @@ function App() {
       onAccessRecords={(patientId, phone) => {
         console.log('Patient accessing records:', { patientId, phone })
         setShowPatientPortal(false)
-        // Would navigate to patient dashboard
       }}
     />
   }
@@ -211,7 +240,7 @@ function App() {
       onCall={() => {
         console.log('Call patient:', selectedPatient)
       }}
-      onArchive={() => {
+      onArchive(() => {
         console.log('Archive patient:', selectedPatient)
       }}
     />
@@ -219,8 +248,13 @@ function App() {
 
   if (showPatientManagement) {
     return <PatientManagementScreen 
-      patients={mockPatients}
-      stats={mockPatientStats}
+      patients={patients || []}
+      stats={{
+        totalPatients: patients?.length || 0,
+        highRisk: patients?.filter((p: any) => p.riskLevel === 'high').length || 0,
+        dueForCheckup: patients?.filter((p: any) => p.dueForCheckup).length || 0,
+        recentRegistrations: patients?.filter((p: any) => p.recentlyAdded).length || 0,
+      }}
       onBack={() => {
         setShowPatientManagement(false)
         setShowDashboard(true)
@@ -281,41 +315,35 @@ function App() {
       }}
       onSavePrescription={() => {
         console.log('Saving prescription:', currentAnalysis)
-        // Here you would save prescription to patient records
       }}
       onSMSPatient={() => {
-        console.log('Sending SMS to patient:', currentAnalysis.patientName)
-        // Here you would send SMS notification to patient
+        console.log('Sending SMS to patient:', currentAnalysis?.patientName)
       }}
       onAlertPatient={() => {
         console.log('Alerting patient about risks:', currentAnalysis)
-        // Here you would send alert to patient
       }}
       onCallSpecialist={() => {
         console.log('Calling specialist for:', currentAnalysis)
-        // Here you would initiate specialist consultation
       }}
     />
   }
 
   if (showInteractionResults) {
     return <InteractionResultsScreen 
-      analysis={mockInteractionAnalysis}
+      analysis={currentAnalysis}
       onBack={() => {
         setShowInteractionResults(false)
         setShowDrugAnalysis(true)
       }}
-      onAddDrug={() => {
+      onAddDrug(() => {
         setShowInteractionResults(false)
         setShowDrugAnalysis(true)
       }}
       onAlertProvider={(analysis) => {
         console.log('Alerting provider about:', analysis)
-        // Here you would send alert to healthcare provider
       }}
       onSaveToRecords={(analysis) => {
         console.log('Saving to patient records:', analysis)
-        // Here you would save to patient medical records
       }}
     />
   }
@@ -351,8 +379,17 @@ function App() {
 
   if (showDashboard) {
     return <DashboardScreen 
-      stats={mockDashboardStats}
-      recentPatients={mockRecentPatients}
+      stats={dashboardStats || {
+        activePatients: 0,
+        activeChange: '+0%',
+        upcoming: 0,
+        upcomingChange: '+0%',
+        labResults: 0,
+        labChange: '+0%',
+        discharges: 0,
+        dischargeChange: '+0%'
+      }}
+      recentPatients={patients?.slice(0, 5) || []}
       clinicName={user?.full_name ? `${user.full_name}'s Clinic` : 'MamaSafe Clinic'}
       location="Lagos, Nigeria"
       userAvatar="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150"
@@ -401,7 +438,6 @@ function App() {
     />
   }
 
-  // This should never be reached as all screens are handled above
   return null
 }
 
