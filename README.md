@@ -2,6 +2,8 @@
 
 A production-grade React application for analyzing drug interactions in healthcare settings. Built with modern technologies and best practices for scalability, accessibility, and performance.
 
+🚀 **Now deployed and ready for use!**
+
 ## 🚀 Features
 
 ### Core Functionality
