@@ -347,11 +347,9 @@ function App() {
       }}
       onAnalyze={(patientId, drugs) => {
         console.log('Analyzing drugs for patient:', { patientId, drugs })
-        showLoadingAndNavigate('Analyzing drug interactions...', () => {
-          setShowDrugAnalysis(false)
-          setShowMedicationResults(true)
-        })
-      }}
+        setShowDrugAnalysis(false)
+        setShowMedicationResults(true)
+      }
     />
   }
 
@@ -363,11 +361,9 @@ function App() {
       }}
       onAnalyze={(drugName, symptoms) => {
         console.log('Analyzing drug:', { drugName, symptoms })
-        showLoadingAndNavigate('Analyzing drug safety...', () => {
-          setShowSingleDrugCheck(false)
-          setShowMedicationResults(true)
-        })
-      }}
+        setShowSingleDrugCheck(false)
+        setShowMedicationResults(true)
+      }
       onViewHistory={() => console.log('View history')}
     />
   }

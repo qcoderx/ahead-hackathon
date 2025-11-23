@@ -96,16 +96,19 @@ export async function checkMedication(data: {
 // Patient APIs
 export async function createPatient(patientData: PatientCreate) {
   try {
-    const response = await apiClient.post('/patient/create', {
+    const payload: any = {
       first_name: patientData.first_name,
-      last_name: patientData.last_name,
-      date_of_birth: patientData.date_of_birth,
       gender: patientData.gender,
       address: patientData.address || '',
       phone_number: patientData.phone_number || '',
       email: patientData.email || '',
       allergies: patientData.allergies || []
-    });
+    };
+    
+    if (patientData.last_name) payload.last_name = patientData.last_name;
+    if (patientData.date_of_birth) payload.date_of_birth = patientData.date_of_birth;
+    
+    const response = await apiClient.post('/patient/create', payload);
     return response.data;
   } catch (error) {
     throw error;
@@ -337,8 +340,8 @@ export interface UserCreate {
 
 export interface PatientCreate {
   first_name: string;
-  last_name: string;
-  date_of_birth: string;
+  last_name?: string;
+  date_of_birth?: string;
   gender: string;
   address?: string;
   phone_number?: string;

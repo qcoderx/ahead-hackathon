@@ -47,7 +47,7 @@ export const useAppointments = () => {
     loading,
     error,
     appointments,
-    createNewAppointment,
+    createAppointment: createNewAppointment,
     fetchPatientAppointments,
     clearError
   }
