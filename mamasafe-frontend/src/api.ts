@@ -75,6 +75,30 @@ export async function testConnection() {
   }
 }
 
+// Test patient endpoint specifically
+export async function testPatientEndpoint() {
+  try {
+    console.log('Testing patient endpoint with auth...');
+    console.log('Current auth header:', apiClient.defaults.headers.common['Authorization']);
+    
+    // Try a simple authenticated endpoint first
+    const response = await apiClient.get('/patient/search', { params: { query: 'test' } });
+    console.log('Patient endpoint test successful:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Patient endpoint test failed:', error);
+    console.error('Error details:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      url: error.config?.url,
+      method: error.config?.method,
+      headers: error.config?.headers
+    });
+    throw error;
+  }
+}
+
 // Medication check API
 export async function checkMedication(data: {
   drug_name: string;
@@ -86,9 +110,21 @@ export async function checkMedication(data: {
   language?: string;
 }) {
   try {
+    console.log('=== API CALL DEBUG ===');
+    console.log('Calling /medications/check with data:', data);
+    
     const response = await apiClient.post('/medications/check', data);
+    
+    console.log('Raw response status:', response.status);
+    console.log('Raw response headers:', response.headers);
+    console.log('Raw response data:', response.data);
+    console.log('Response data type:', typeof response.data);
+    console.log('Response data keys:', response.data ? Object.keys(response.data) : 'null');
+    console.log('=== END API CALL DEBUG ===');
+    
     return response.data;
   } catch (error) {
+    console.error('API call failed:', error);
     throw error;
   }
 }
@@ -96,6 +132,7 @@ export async function checkMedication(data: {
 // Patient APIs
 export async function createPatient(patientData: PatientCreate) {
   try {
+    console.log('Creating patient with data:', patientData);
     const response = await apiClient.post('/patient/create', {
       first_name: patientData.first_name,
       last_name: patientData.last_name,
@@ -106,8 +143,67 @@ export async function createPatient(patientData: PatientCreate) {
       email: patientData.email || '',
       allergies: patientData.allergies || []
     });
+    console.log('Patient creation response:', response.data);
     return response.data;
   } catch (error) {
+    console.error('Patient creation error:', error);
+    console.error('Error response:', error.response);
+    throw error;
+  }
+}
+
+export async function getAllPatients() {
+  try {
+    console.log('Making GET request to /patient/all');
+    console.log('Auth header:', apiClient.defaults.headers.common['Authorization']);
+    console.log('Base URL:', apiClient.defaults.baseURL);
+    
+    // Try the main endpoint first
+    const response = await apiClient.get('/patient/all');
+    console.log('Patient list response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Patient list error:', error);
+    console.error('Error response:', error.response?.data);
+    console.error('Error status:', error.response?.status);
+    console.error('Error config:', error.config);
+    
+    // If 405 Method Not Allowed or other errors, try search endpoint as fallback
+    if (error.response?.status === 405 || error.response?.status === 404) {
+      console.log('Primary endpoint failed, trying search endpoint as fallback...');
+      try {
+        const searchResponse = await apiClient.get('/patient/search', { 
+          params: { query: '' } 
+        });
+        console.log('Search fallback response:', searchResponse.data);
+        
+        // Handle different response formats
+        if (searchResponse.data.patients && Array.isArray(searchResponse.data.patients)) {
+          // Convert search format to /all format
+          return searchResponse.data.patients.map(p => ({
+            id: p.id,
+            first_name: p.name?.split(' ')[0] || '',
+            last_name: p.name?.split(' ').slice(1).join(' ') || '',
+            full_name: p.name || '',
+            phone_number: p.phone || '',
+            date_of_birth: null,
+            gender: null,
+            address: '',
+            created_at: null,
+            updated_at: null
+          }));
+        } else if (Array.isArray(searchResponse.data)) {
+          return searchResponse.data;
+        } else {
+          return [];
+        }
+      } catch (searchError) {
+        console.error('Search fallback also failed:', searchError);
+        // Return empty array as last resort
+        return [];
+      }
+    }
+    
     throw error;
   }
 }

@@ -5,7 +5,7 @@ import { useTranslation } from '../../contexts/TranslationContext'
 import { InteractionAnalysis } from '../../types/interactions'
 
 interface MedicationResultsScreenProps {
-  analysis: InteractionAnalysis
+  analysis: InteractionAnalysis | null
   onBack: () => void
   onSavePrescription?: () => void
   onSMSPatient?: () => void
@@ -24,6 +24,24 @@ const MedicationResultsScreen: React.FC<MedicationResultsScreenProps> = ({
   const { t } = useTranslation()
   const [isSaving, setIsSaving] = useState(false)
   const [isSending, setIsSending] = useState(false)
+
+  // Handle null analysis
+  if (!analysis) {
+    return (
+      <div className="flex min-h-screen bg-gray-50 items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">No Analysis Data</h2>
+          <p className="text-gray-600 mb-6">Unable to load medication analysis results.</p>
+          <button
+            onClick={onBack}
+            className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   const getRiskConfig = (risk: string) => {
     const normalizedRisk = risk?.toLowerCase() || ''
@@ -93,7 +111,7 @@ const MedicationResultsScreen: React.FC<MedicationResultsScreenProps> = ({
     }
   }
 
-  const config = getRiskConfig(analysis.overallRisk)
+  const config = getRiskConfig(analysis?.overallRisk || 'low')
   const RiskIcon = config.icon
 
   const handleSave = async () => {
@@ -176,8 +194,8 @@ const MedicationResultsScreen: React.FC<MedicationResultsScreenProps> = ({
           >
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">{analysis.drugName}</h2>
-                <p className="text-sm text-gray-500">{analysis.category}</p>
+                <h2 className="text-xl font-bold text-gray-900">{analysis.drugName || 'Unknown Drug'}</h2>
+                <p className="text-sm text-gray-500">{analysis.category || 'Medication'}</p>
               </div>
               <div className={`flex items-center justify-center h-12 w-12 rounded-full ${config.iconBg}`}>
                 <Pill className={`${config.iconColor} text-3xl h-8 w-8`} />
@@ -187,8 +205,8 @@ const MedicationResultsScreen: React.FC<MedicationResultsScreenProps> = ({
             <div className="border-t border-gray-200 pt-4 flex items-center gap-4">
               <div className="w-12 h-12 flex-shrink-0 bg-center bg-no-repeat bg-cover rounded-full bg-gray-200"></div>
               <div>
-                <p className="font-semibold text-gray-800">Patient: {analysis.patientName}</p>
-                <p className="text-sm text-gray-500">ID: {analysis.patientId}</p>
+                <p className="font-semibold text-gray-800">Patient: {analysis.patientName || 'Unknown Patient'}</p>
+                <p className="text-sm text-gray-500">ID: {analysis.patientId || 'N/A'}</p>
               </div>
             </div>
           </motion.div>
@@ -202,12 +220,12 @@ const MedicationResultsScreen: React.FC<MedicationResultsScreenProps> = ({
           >
             <p className="text-sm font-medium text-gray-600 mb-2">AI Analysis Result</p>
             <div className="flex items-center gap-3">
-              <span className="text-3xl">{analysis.emoji}</span>
+              <span className="text-3xl">{analysis.emoji || '❓'}</span>
               <div>
                 <h3 className={`text-2xl font-bold ${config.textColor}`}>
-                  Risk Category: {analysis.riskCategory}
+                  Risk Category: {analysis.riskCategory || 'Unknown'}
                 </h3>
-                <p className="text-sm text-gray-700">{analysis.description}</p>
+                <p className="text-sm text-gray-700">{analysis.description || 'No description available'}</p>
               </div>
             </div>
           </motion.div>
@@ -222,7 +240,7 @@ const MedicationResultsScreen: React.FC<MedicationResultsScreenProps> = ({
             >
               <div className="bg-white p-4 rounded-xl shadow-card">
                 <p className="text-sm text-gray-500">Dosage</p>
-                <p className="font-bold text-gray-900 text-lg">{analysis.dosage}</p>
+                <p className="font-bold text-gray-900 text-lg">{analysis.dosage || 'Standard'}</p>
               </div>
               <div className="bg-white p-4 rounded-xl shadow-card">
                 <p className="text-sm text-gray-500">Duration</p>
@@ -347,31 +365,34 @@ const MedicationResultsScreen: React.FC<MedicationResultsScreenProps> = ({
                 <>
                   <motion.button
                     className={`flex-1 flex items-center justify-center rounded-lg h-12 px-4 ${config.buttonSecondary} font-bold text-base transition-colors`}
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    <span>{isSaving ? 'Saving...' : 'Save Report'}</span>
+                  </motion.button>
+                  <motion.button
+                    className={`flex-1 flex items-center justify-center rounded-lg h-12 px-4 ${config.buttonPrimary} font-bold text-base transition-colors`}
                     onClick={onAlertPatient}
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.99 }}
                   >
                     Consult Specialist
                   </motion.button>
-                  <motion.button
-                    className={`flex-1 flex items-center justify-center rounded-lg h-12 px-4 ${config.buttonPrimary} font-bold text-base transition-colors`}
-                    onClick={onSavePrescription}
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
-                  >
-                    Document Caution
-                  </motion.button>
                 </>
               ) : (
                 <>
                   <motion.button
                     className={`flex-1 flex items-center justify-center rounded-lg h-12 px-5 ${config.buttonSecondary} font-bold text-base transition-colors`}
-                    onClick={onAlertPatient}
+                    onClick={handleSave}
+                    disabled={isSaving}
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.99 }}
                   >
-                    <Bell className="h-4 w-4 mr-2" />
-                    Alert Patient
+                    <Save className="h-4 w-4 mr-2" />
+                    <span>{isSaving ? 'Saving...' : 'Save Report'}</span>
                   </motion.button>
                   <motion.button
                     className={`flex-1 flex items-center justify-center rounded-lg h-12 px-5 ${config.buttonPrimary} font-bold text-base transition-colors`}

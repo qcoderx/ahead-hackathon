@@ -64,11 +64,23 @@ export const useDrugAnalysis = () => {
       
       // Create interaction based on API response
       if (!response.is_safe) {
+        // Map risk category to proper severity
+        let severity = 'moderate';
+        const riskCat = (response.risk_category || '').toLowerCase();
+        
+        if (riskCat.includes('contraindicated') || riskCat.includes('critical')) {
+          severity = 'critical';
+        } else if (riskCat.includes('high') || riskCat.includes('major')) {
+          severity = 'major';
+        } else if (riskCat.includes('moderate')) {
+          severity = 'moderate';
+        }
+        
         const interaction: DrugInteraction = {
           id: '1',
           drug1: { id: '1', name: response.drug_name, dosage: '' },
           drug2: { id: '2', name: additionalDrugs[0] || 'Unknown', dosage: '' },
-          severity: (response.risk_category?.toLowerCase() || 'moderate') as any,
+          severity: severity as any,
           description: response.message,
           clinicalImpact: response.personalized_notes || response.message,
           recommendations: response.alternative_drug ? [`Consider ${response.alternative_drug} as alternative`] : [],

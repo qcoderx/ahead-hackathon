@@ -147,11 +147,19 @@ async def create_patient(
             detail="Failed to create patient in Dorra EMR"
         )
     
+    # Ensure patient_id is returned
+    patient_id = result.get("id")
+    if not patient_id:
+        raise HTTPException(
+            status_code=500,
+            detail="Patient created but no ID returned from EMR"
+        )
+    
     return PatientCreateResponse(
         status=result.get("status", True),
         status_code=result.get("status_code", 201),
         message=result.get("message", "Patient created successfully"),
-        patient_id=result.get("id")
+        patient_id=patient_id
     )
 
 class PatientInviteRequest(BaseModel):
@@ -237,6 +245,42 @@ async def get_patient_appointments(
             })
     
     return {"appointments": appointments}
+
+@router.get("/all")
+async def list_all_patients(
+    current_user: User = Depends(deps.get_current_active_user)
+):
+    """
+    List all patients in the team.
+    """
+    print(f"Patient list endpoint called by user: {current_user.email}, role: {current_user.role}")
+    
+    if current_user.role not in ["provider", "admin"]:
+        raise HTTPException(status_code=403, detail="Provider access required")
+    
+    # Call Dorra EMR API to get all patients
+    result = await dorra_emr.get_patients()
+    print(f"EMR result: {result}")
+    
+    # Extract patients list from result
+    patients_list = []
+    if result and "results" in result:
+        for p in result["results"]:
+            patients_list.append({
+                "id": p.get("id"),
+                "first_name": p.get("first_name", ""),
+                "last_name": p.get("last_name", ""),
+                "full_name": f"{p.get('first_name', '')} {p.get('last_name', '')}".strip(),
+                "phone_number": p.get("phone_number", ""),
+                "email": p.get("email", ""),
+                "date_of_birth": p.get("date_of_birth"),
+                "gender": p.get("gender"),
+                "address": p.get("address", ""),
+                "created_at": p.get("created_at"),
+                "updated_at": p.get("updated_at")
+            })
+            
+    return patients_list
 
 @router.get("/search")
 async def search_patients(

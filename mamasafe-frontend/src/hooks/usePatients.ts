@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { searchPatients, createPatient, invitePatient, handleApiError, PatientCreate, PatientCreateResponse } from '../api'
+import { getAllPatients, searchPatients, createPatient, invitePatient, handleApiError, PatientCreate, PatientCreateResponse, testPatientEndpoint } from '../api'
 import { Patient } from '../types/patient'
 
 export const usePatients = () => {
@@ -9,8 +9,53 @@ export const usePatients = () => {
 
   // Load initial patients
   useEffect(() => {
-    searchPatientsQuery('')
+    loadAllPatients()
   }, [])
+
+  const loadAllPatients = async () => {
+    setLoading(true)
+    setError(null)
+    
+    try {
+      console.log('Loading all patients...')
+      
+      // First test the endpoint connectivity
+      try {
+        await testPatientEndpoint()
+        console.log('Patient endpoint test passed')
+      } catch (testError) {
+        console.warn('Patient endpoint test failed, but continuing:', testError)
+      }
+      
+      // Call real API to get all patients
+      const response = await getAllPatients()
+      console.log('Raw API response:', response)
+      
+      // Map API response to frontend Patient interface
+      const mappedPatients: Patient[] = Array.isArray(response) ? response.map((p: any) => ({
+        id: p.id?.toString() || '',
+        patientId: `MS-${p.id}`,
+        name: p.full_name || `${p.first_name} ${p.last_name || ''}`.trim(),
+        age: calculateAge(p.date_of_birth),
+        gestationalWeek: p.gestational_week || 0,
+        phoneNumber: p.phone_number || '',
+        location: p.address || '',
+        lastMedCheck: p.updated_at ? new Date(p.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        riskLevel: p.risk_level?.toLowerCase() || 'safe',
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(p.first_name || 'U')}+${encodeURIComponent(p.last_name || 'U')}&background=random`
+      })) : []
+      
+      console.log('Mapped patients:', mappedPatients)
+      setPatients(mappedPatients)
+    } catch (err) {
+      console.error('Failed to load patients:', err)
+      console.error('Error details:', err.response?.data)
+      setError(`Failed to load patients: ${err.response?.data?.detail || err.message}`)
+      setPatients([])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const searchPatientsQuery = async (query: string) => {
     setLoading(true)
@@ -52,7 +97,7 @@ export const usePatients = () => {
     try {
       const response: PatientCreateResponse = await createPatient(patientData)
       // Refresh list after creation
-      await searchPatientsQuery('')
+      await loadAllPatients()
       return response
     } catch (err) {
       const apiError = handleApiError(err)
@@ -97,6 +142,7 @@ export const usePatients = () => {
     patients,
     loading,
     error,
+    loadAllPatients,
     searchPatientsQuery,
     createNewPatient,
     sendPatientInvite

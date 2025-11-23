@@ -1,147 +1,179 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowLeft, FileText, Download, Share2, Search, Filter, Calendar } from 'lucide-react';
-import Button from '../ui/Button';
-import Card from '../ui/Card';
+import React from 'react'
+import { motion } from 'framer-motion'
+import { ArrowLeft, FileText, Calendar, User, Pill, AlertTriangle } from 'lucide-react'
 
 interface Report {
-  id: string;
-  patientName: string;
-  patientId: string;
-  date: string;
-  type: 'Interaction Check' | 'Medication Safety' | 'Visit Summary';
-  riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
-  summary: string;
+  id: string
+  drugName: string
+  patientName: string
+  patientId: string
+  overallRisk: 'low' | 'moderate' | 'high' | 'critical'
+  riskCategory: string
+  emoji: string
+  analysisDate: string
+  savedAt: string
 }
 
 interface ReportsScreenProps {
-  onBack: () => void;
+  reports: Report[]
+  onBack: () => void
+  onViewReport: (report: Report) => void
 }
 
-const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [reports, setReports] = useState<Report[]>([]);
-
-  useEffect(() => {
-    // Load reports from localStorage (simulating backend fetch)
-    const savedReports = JSON.parse(localStorage.getItem('mamasafe_reports') || '[]');
-    // Add some mock data if empty
-    if (savedReports.length === 0) {
-      const mockReports: Report[] = [
-        {
-          id: 'R-1001',
-          patientName: 'Jessica Alba',
-          patientId: 'MS-837492',
-          date: '2024-03-20',
-          type: 'Medication Safety',
-          riskLevel: 'High',
-          summary: 'Contraindicated: Ibuprofen (3rd Trimester)'
-        },
-        {
-          id: 'R-1002',
-          patientName: 'Sarah Johnson',
-          patientId: 'MS-1023',
-          date: '2024-03-19',
-          type: 'Interaction Check',
-          riskLevel: 'Low',
-          summary: 'Safe combination: Paracetamol + Amoxicillin'
-        }
-      ];
-      setReports(mockReports);
-    } else {
-      setReports(savedReports);
+const ReportsScreen: React.FC<ReportsScreenProps> = ({ reports, onBack, onViewReport }) => {
+  const getRiskColor = (risk: string) => {
+    switch (risk) {
+      case 'critical':
+        return 'bg-red-100 text-red-800 border-red-200'
+      case 'high':
+        return 'bg-orange-100 text-orange-800 border-orange-200'
+      case 'moderate':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      case 'low':
+        return 'bg-green-100 text-green-800 border-green-200'
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200'
     }
-  }, []);
-
-  const filteredReports = reports.filter(report => 
-    report.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    report.patientId.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const getRiskColor = (level: string) => {
-    switch (level) {
-      case 'Critical': return 'bg-red-100 text-red-700';
-      case 'High': return 'bg-orange-100 text-orange-700';
-      case 'Medium': return 'bg-yellow-100 text-yellow-700';
-      case 'Low': return 'bg-green-100 text-green-700';
-      default: return 'bg-gray-100 text-gray-700';
-    }
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="px-4 py-4 flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={onBack}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-xl font-bold text-gray-900">Medical Reports</h1>
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <motion.aside
+        className="fixed left-0 top-0 h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white shadow-xl z-20 flex flex-col w-64"
+        initial={{ x: -256 }}
+        animate={{ x: 0 }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+      >
+        <div className="p-4 border-b border-gray-700">
+          <div className="flex items-center gap-2">
+            <motion.img 
+              src="/images/logo.png" 
+              alt="MamaSafe" 
+              className="h-8 w-8 object-contain"
+              whileHover={{ scale: 1.1, rotate: 360 }}
+              transition={{ duration: 0.6 }}
+            />
+            <div>
+              <h1 className="text-sm font-bold">MamaSafe</h1>
+              <p className="text-xs text-gray-400">Reports</p>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="p-4 space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search reports..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50"
-          />
-        </div>
-
-        <div className="space-y-3">
-          {filteredReports.map((report, index) => (
-            <motion.div
-              key={report.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
+        <nav className="flex-1 p-3 overflow-y-auto">
+          <div className="space-y-1">
+            <motion.button
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-all text-sm"
+              onClick={onBack}
+              whileHover={{ scale: 1.02, x: 2 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <Card className="p-4 border border-gray-100 hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="font-bold text-gray-900">{report.patientName}</h3>
-                    <p className="text-xs text-gray-500">{report.patientId}</p>
-                  </div>
-                  <span className={`px-2 py-1 rounded text-xs font-bold ${getRiskColor(report.riskLevel)}`}>
-                    {report.riskLevel}
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                  <FileText className="w-4 h-4" />
-                  <span className="font-medium">{report.type}</span>
-                </div>
-                
-                <p className="text-sm text-gray-600 mb-4 bg-gray-50 p-2 rounded">
-                  {report.summary}
-                </p>
-                
-                <div className="flex items-center justify-between text-xs text-gray-500 border-t pt-3">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    {report.date}
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="flex items-center gap-1 hover:text-primary transition-colors">
-                      <Download className="w-3 h-3" /> PDF
-                    </button>
-                    <button className="flex items-center gap-1 hover:text-primary transition-colors">
-                      <Share2 className="w-3 h-3" /> Share
-                    </button>
-                  </div>
-                </div>
-              </Card>
+              <ArrowLeft className="h-4 w-4 flex-shrink-0" />
+              <span className="font-medium">Back to Dashboard</span>
+            </motion.button>
+          </div>
+        </nav>
+      </motion.aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-h-screen ml-64">
+        {/* Header */}
+        <motion.header
+          className="flex items-center bg-white p-4 shadow-sm sticky top-0 z-10"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <h1 className="flex-1 text-center text-lg font-bold tracking-tight text-gray-900">
+            Medication Reports
+          </h1>
+        </motion.header>
+
+        <main className="flex-1 overflow-y-auto p-6">
+          {reports.length === 0 ? (
+            <motion.div
+              className="text-center py-12"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <FileText className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">No Reports Yet</h2>
+              <p className="text-gray-600">
+                Saved medication analysis reports will appear here
+              </p>
             </motion.div>
-          ))}
-        </div>
+          ) : (
+            <div className="space-y-4">
+              <motion.div
+                className="flex items-center justify-between mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Saved Reports ({reports.length})
+                </h2>
+              </motion.div>
+
+              <div className="grid gap-4">
+                {reports.map((report, index) => (
+                  <motion.div
+                    key={report.id}
+                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    onClick={() => onViewReport(report)}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="text-2xl">{report.emoji}</span>
+                          <div>
+                            <h3 className="font-semibold text-gray-900 text-lg">
+                              {report.drugName}
+                            </h3>
+                            <div className="flex items-center gap-4 text-sm text-gray-600">
+                              <div className="flex items-center gap-1">
+                                <User className="h-4 w-4" />
+                                <span>{report.patientName}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-4 w-4" />
+                                <span>{new Date(report.savedAt).toLocaleDateString()}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getRiskColor(report.overallRisk)}`}>
+                            {report.riskCategory}
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            Patient ID: {report.patientId}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        {report.overallRisk === 'critical' && (
+                          <AlertTriangle className="h-5 w-5 text-red-500" />
+                        )}
+                        <Pill className="h-5 w-5 text-gray-400" />
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+        </main>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ReportsScreen;
+export default ReportsScreen

@@ -111,14 +111,16 @@ export const PatientRegistrationScreen: React.FC<
         allergies: formData.knownAllergies ? [formData.knownAllergies] : [],
       };
 
-      type CreatePatientResponse = { patient_id?: string; [key: string]: any };
+      type CreatePatientResponse = { patient_id?: number; [key: string]: any };
       const response = (await createPatient(
         patientData
       )) as CreatePatientResponse;
       console.log("Patient created:", response);
 
       if (response && response.patient_id) {
-        const patientIdNumber = Number(response.patient_id);
+        const patientIdNumber = response.patient_id;
+        console.log("Patient created with ID:", patientIdNumber);
+        
         await updateEncounter({
           patient_id: patientIdNumber,
           weight: formData.weight,
@@ -138,6 +140,12 @@ export const PatientRegistrationScreen: React.FC<
             : [],
         });
         console.log("Encounter created");
+        
+        // Show success message
+        alert(`Patient registered successfully! Patient ID: ${patientIdNumber}`);
+      } else {
+        console.error("No patient_id in response:", response);
+        alert("Patient created but no ID returned. Please check with administrator.");
       }
 
       onRegisterSuccess(formData);

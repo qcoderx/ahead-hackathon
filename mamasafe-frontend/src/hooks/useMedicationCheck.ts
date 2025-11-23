@@ -11,7 +11,15 @@ export const useMedicationCheck = () => {
     setError(null)
     
     try {
+      console.log('=== MEDICATION CHECK DEBUG ===');
+      console.log('Request data:', data);
+      
       const response: MedicationCheckResponse = await checkMedication(data)
+      
+      console.log('Raw API response:', response);
+      console.log('Response type:', typeof response);
+      console.log('Response keys:', response ? Object.keys(response) : 'null');
+      
       setResult(response)
       
       // Log the visit if patient_id is provided
@@ -26,6 +34,8 @@ export const useMedicationCheck = () => {
         await logVisit(visitData)
       }
       
+      console.log('Returning response:', response);
+      console.log('=== END MEDICATION CHECK DEBUG ===');
       return response
     } catch (err) {
       const apiError = handleApiError(err)

@@ -37,13 +37,16 @@ export const useAuth = () => {
       localStorage.setItem('mamasafe_token', access_token)
       setIsAuthenticated(true)
       
-      // Set user data (you might need to fetch user profile separately)
+      // Set user data with proper role - assuming provider for now
       setUser({
         id: '1',
         email: username,
-        role: 'provider',
+        full_name: username,
+        role: 'provider', // This should be fetched from backend
         is_active: true
       })
+      
+      console.log('User logged in successfully with role: provider')
       
       return response
     } catch (err) {
