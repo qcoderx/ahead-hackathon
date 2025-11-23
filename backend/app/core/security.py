@@ -21,9 +21,13 @@ def create_access_token(subject: Union[str, Any], expires_delta: timedelta = Non
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     # Bcrypt has a 72 byte limit, truncate if necessary
     password_bytes = plain_password.encode('utf-8')[:72]
-    return pwd_context.verify(password_bytes, hashed_password)
+    # Decode back to string, ignoring incomplete multibyte chars
+    truncated_password = password_bytes.decode('utf-8', errors='ignore')
+    return pwd_context.verify(truncated_password, hashed_password)
 
 def get_password_hash(password: str) -> str:
     # Bcrypt has a 72 byte limit, truncate if necessary
     password_bytes = password.encode('utf-8')[:72]
-    return pwd_context.hash(password_bytes)
+    # Decode back to string, ignoring incomplete multibyte chars
+    truncated_password = password_bytes.decode('utf-8', errors='ignore')
+    return pwd_context.hash(truncated_password)
