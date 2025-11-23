@@ -50,20 +50,29 @@ function App() {
   const [showScheduleAppointment, setShowScheduleAppointment] = useState(false);
   const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
-  const [currentAnalysis, setCurrentAnalysis] = useState<InteractionAnalysis | null>(null);
+  const [currentAnalysis, setCurrentAnalysis] =
+    useState<InteractionAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
   const {} = useTranslation();
-  
+
   // Real Data Hooks
-  const { stats: dashboardStats, loading: statsLoading, refreshStats } = useDashboardStats();
-  const { patients: allPatients, loading: patientsLoading, searchPatientsQuery } = usePatients();
+  const {
+    stats: dashboardStats,
+    loading: statsLoading,
+    refreshStats,
+  } = useDashboardStats();
+  const {
+    patients: allPatients,
+    loading: patientsLoading,
+    searchPatientsQuery,
+  } = usePatients();
 
   // Refresh data when dashboard is shown
   useEffect(() => {
     if (showDashboard) {
       refreshStats();
-      searchPatientsQuery('');
+      searchPatientsQuery("");
     }
   }, [showDashboard]);
 
@@ -298,7 +307,8 @@ function App() {
         patients={allPatients}
         stats={{
           totalPatients: dashboardStats.activePatients,
-          highRisk: allPatients.filter(p => p.riskLevel === 'high-risk').length,
+          highRisk: allPatients.filter((p) => p.riskLevel === "high-risk")
+            .length,
           dueForCheckup: dashboardStats.upcoming,
           recentRegistrations: dashboardStats.activeChange,
         }}
@@ -347,7 +357,7 @@ function App() {
         onRegisterSuccess={(patientData) => {
           console.log("Patient registered:", patientData);
           showLoadingAndNavigate("Registering patient...", () => {
-            searchPatientsQuery(''); // Refresh patient list
+            searchPatientsQuery(""); // Refresh patient list
             setShowPatientRegistration(false);
             setShowPatientManagement(true);
           });
@@ -367,18 +377,20 @@ function App() {
         onSavePrescription={() => {
           console.log("Saving prescription:", currentAnalysis);
           if (currentAnalysis) {
-            const reports = JSON.parse(localStorage.getItem('mamasafe_reports') || '[]');
+            const reports = JSON.parse(
+              localStorage.getItem("mamasafe_reports") || "[]"
+            );
             reports.unshift({
               id: `R-${Date.now()}`,
-              patientName: currentAnalysis.patientName || 'Unknown',
-              patientId: currentAnalysis.patientId || 'Unknown',
+              patientName: currentAnalysis.patientName || "Unknown",
+              patientId: currentAnalysis.patientId || "Unknown",
               date: new Date().toLocaleDateString(),
-              type: 'Medication Safety',
-              riskLevel: currentAnalysis.riskCategory || 'Low',
-              summary: currentAnalysis.description || 'No summary'
+              type: "Medication Safety",
+              riskLevel: currentAnalysis.riskCategory || "Low",
+              summary: currentAnalysis.description || "No summary",
             });
-            localStorage.setItem('mamasafe_reports', JSON.stringify(reports));
-            alert('Report saved successfully!');
+            localStorage.setItem("mamasafe_reports", JSON.stringify(reports));
+            alert("Report saved successfully!");
           }
         }}
         onSMSPatient={() => {
@@ -412,20 +424,29 @@ function App() {
         onSaveToRecords={(analysis) => {
           console.log("Saving to patient records:", analysis);
           if (analysis) {
-            const reports = JSON.parse(localStorage.getItem('mamasafe_reports') || '[]');
+            const reports = JSON.parse(
+              localStorage.getItem("mamasafe_reports") || "[]"
+            );
             reports.unshift({
               id: `R-${Date.now()}`,
-              patientName: analysis.patientName || 'Unknown',
-              patientId: analysis.patientId || 'Unknown',
+              patientName: analysis.patientName || "Unknown",
+              patientId: analysis.patientId || "Unknown",
               date: new Date().toLocaleDateString(),
-              type: 'Interaction Check',
-              riskLevel: analysis.overallRisk === 'critical' ? 'Critical' : 
-                         analysis.overallRisk === 'high' ? 'High' : 
-                         analysis.overallRisk === 'moderate' ? 'Medium' : 'Low',
-              summary: `Interaction check for ${analysis.drugs.map(d => d.name).join(', ')}`
+              type: "Interaction Check",
+              riskLevel:
+                analysis.overallRisk === "critical"
+                  ? "Critical"
+                  : analysis.overallRisk === "high"
+                  ? "High"
+                  : analysis.overallRisk === "moderate"
+                  ? "Medium"
+                  : "Low",
+              summary: `Interaction check for ${analysis.drugs
+                .map((d) => d.name)
+                .join(", ")}`,
             });
-            localStorage.setItem('mamasafe_reports', JSON.stringify(reports));
-            alert('Interaction report saved successfully!');
+            localStorage.setItem("mamasafe_reports", JSON.stringify(reports));
+            alert("Interaction report saved successfully!");
           }
         }}
       />
@@ -441,28 +462,37 @@ function App() {
           setShowDashboard(true);
         }}
         onAnalyze={(patientId, drugs, result) => {
-          console.log("Analyzing drugs for patient:", { patientId, drugs, result });
-          
+          console.log("Analyzing drugs for patient:", {
+            patientId,
+            drugs,
+            result,
+          });
+
           if (result) {
             const mappedResult: InteractionAnalysis = {
-              id: Date.now().toString(),
               patientId: patientId,
-              patientName: selectedPatient?.name || result.patientName || 'Unknown',
-              drugs: drugs.map(d => ({ ...d, type: 'primary' })),
-              interactions: result.interactions.map(i => ({
+              patientName:
+                selectedPatient?.name || result.patientName || "Unknown",
+              drugs: drugs.map((d) => ({ ...d, type: "primary" })),
+              interactions: result.interactions.map((i) => ({
                 id: i.id,
                 severity: i.severity as any,
                 title: `Interaction between ${i.drug1.name} and ${i.drug2.name}`,
                 description: i.description,
                 risk: i.clinicalImpact,
-                recommendation: i.recommendations[0] || 'Monitor closely',
-                action: 'Consult specialist',
-                drugs: [i.drug1.name, i.drug2.name]
+                recommendation: i.recommendations[0] || "Monitor closely",
+                action: "Consult specialist",
+                drugs: [i.drug1.name, i.drug2.name],
               })),
-              overallRisk: result.criticalCount > 0 ? 'critical' : 
-                           result.majorCount > 0 ? 'high' : 
-                           result.moderateCount > 0 ? 'moderate' : 'low',
-              analysisDate: result.timestamp || new Date().toISOString()
+              overallRisk:
+                result.criticalCount > 0
+                  ? "critical"
+                  : result.majorCount > 0
+                  ? "high"
+                  : result.moderateCount > 0
+                  ? "moderate"
+                  : "low",
+              analysisDate: result.timestamp || new Date().toISOString(),
             };
             setCurrentAnalysis(mappedResult);
           }
@@ -486,26 +516,27 @@ function App() {
         }}
         onAnalyze={(drugName, symptoms, result) => {
           console.log("Analyzing drug:", { drugName, symptoms, result });
-          
+
           if (result) {
             const mappedResult: InteractionAnalysis = {
-              id: Date.now().toString(),
-              patientId: selectedPatient?.patientId || 'MS-837492',
-              patientName: selectedPatient?.name || 'Jessica Alba',
+              patientId: selectedPatient?.patientId || "MS-837492",
+              patientName: selectedPatient?.name || "Jessica Alba",
               drugName: result.drug_name,
-              category: 'Antibiotic', // Placeholder or derived
+              category: "Antibiotic", // Placeholder or derived
               riskCategory: result.risk_category,
-              emoji: result.is_safe ? '✅' : '⚠️',
+              emoji: result.is_safe ? "✅" : "⚠️",
               description: result.message,
               details: {
                 risks: [result.personalized_notes],
-                actions: result.alternative_drug ? [`Consider alternative: ${result.alternative_drug}`] : [],
-                monitoring: 'Routine monitoring'
+                actions: result.alternative_drug
+                  ? [`Consider alternative: ${result.alternative_drug}`]
+                  : [],
+                monitoring: "Routine monitoring",
               },
-              drugs: [{ id: '1', name: result.drug_name, type: 'primary' }],
+              drugs: [{ id: "1", name: result.drug_name, type: "primary" }],
               interactions: [],
               analysisDate: new Date().toISOString(),
-              overallRisk: result.risk_category.toLowerCase() as any
+              overallRisk: result.risk_category.toLowerCase() as any,
             };
             setCurrentAnalysis(mappedResult);
           }
@@ -524,12 +555,17 @@ function App() {
     return (
       <DashboardScreen
         stats={dashboardStats}
-        recentPatients={allPatients.slice(0, 5).map(p => ({
+        recentPatients={allPatients.slice(0, 5).map((p) => ({
           id: p.id,
           name: p.name,
           room: p.location, // Mapping location to room for dashboard display
-          status: p.riskLevel === 'safe' ? 'stable' : p.riskLevel === 'high-risk' ? 'critical' : 'needs-attention',
-          avatar: p.avatar || ''
+          status:
+            p.riskLevel === "safe"
+              ? "stable"
+              : p.riskLevel === "high-risk"
+              ? "critical"
+              : "needs-attention",
+          avatar: p.avatar || "",
         }))}
         onPatientClick={(patient) => {
           console.log("Patient clicked:", patient);
@@ -539,7 +575,9 @@ function App() {
         }}
         onMedicationCheck={(patientId, medication) => {
           console.log("Medication check:", { patientId, medication });
-          const patient = allPatients.find(p => p.id === patientId || p.patientId === patientId);
+          const patient = allPatients.find(
+            (p) => p.id === patientId || p.patientId === patientId
+          );
           if (patient) {
             setSelectedPatient(patient);
           }

@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowLeft, User, Baby, Stethoscope, MapPin } from 'lucide-react';
-import { useTranslation } from '../../contexts/TranslationContext';
-import Button from '../ui/Button';
-import Input from '../ui/Input';
-import Card from '../ui/Card';
-import { Select } from '../ui/Select';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { ArrowLeft, User, Baby, Stethoscope, MapPin } from "lucide-react";
+import { useTranslation } from "../../contexts/TranslationContext";
+import Button from "../ui/Button";
+import Input from "../ui/Input";
+import Card from "../ui/Card";
+import { Select } from "../ui/Select";
 
 interface PatientFormData {
   firstName: string;
@@ -36,53 +36,54 @@ interface PatientRegistrationScreenProps {
   onRegisterSuccess: (patientData: PatientFormData) => void;
 }
 
-export const PatientRegistrationScreen: React.FC<PatientRegistrationScreenProps> = ({
-  onBack,
-  onRegisterSuccess
-}) => {
+export const PatientRegistrationScreen: React.FC<
+  PatientRegistrationScreenProps
+> = ({ onBack, onRegisterSuccess }) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState<PatientFormData>({
-    firstName: '',
-    lastName: '',
-    age: '',
-    phoneNumber: '',
-    location: '',
-    gestationalWeek: '',
-    lastMenstrualPeriod: '',
-    expectedDueDate: '',
-    highRiskPregnancy: 'no',
-    knownAllergies: '',
-    currentMedications: '',
-    previousPregnancies: '',
-    knownComplications: '',
-    weight: '',
-    height: '',
-    bloodPressure: '',
-    heartRate: '',
-    temperature: '',
-    consultationReason: '',
-    diagnosis: '',
-    notes: ''
+    firstName: "",
+    lastName: "",
+    age: "",
+    phoneNumber: "",
+    location: "",
+    gestationalWeek: "",
+    lastMenstrualPeriod: "",
+    expectedDueDate: "",
+    highRiskPregnancy: "no",
+    knownAllergies: "",
+    currentMedications: "",
+    previousPregnancies: "",
+    knownComplications: "",
+    weight: "",
+    height: "",
+    bloodPressure: "",
+    heartRate: "",
+    temperature: "",
+    consultationReason: "",
+    diagnosis: "",
+    notes: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<PatientFormData>>({});
 
   const handleInputChange = (field: keyof PatientFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
   const validateForm = (): boolean => {
     const newErrors: Partial<PatientFormData> = {};
 
-    if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
-    if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-    if (!formData.age.trim()) newErrors.age = 'Age is required';
-    if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'Phone number is required';
-    if (!formData.location.trim()) newErrors.location = 'Location is required';
+    if (!formData.firstName.trim())
+      newErrors.firstName = "First name is required";
+    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
+    if (!formData.age.trim()) newErrors.age = "Age is required";
+    if (!formData.phoneNumber.trim())
+      newErrors.phoneNumber = "Phone number is required";
+    if (!formData.location.trim()) newErrors.location = "Location is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -93,29 +94,33 @@ export const PatientRegistrationScreen: React.FC<PatientRegistrationScreenProps>
 
     setIsSubmitting(true);
     try {
-      const { createPatient, updateEncounter } = await import('../../api');
-      
+      const { createPatient, updateEncounter } = await import("../../api");
+
       // Calculate date of birth from age
       const currentYear = new Date().getFullYear();
       const birthYear = currentYear - parseInt(formData.age);
       const dateOfBirth = `${birthYear}-01-01`;
-      
+
       const patientData = {
         first_name: formData.firstName,
         last_name: formData.lastName,
         date_of_birth: dateOfBirth,
-        gender: 'Female', // Fixed to Title Case for backend validation
+        gender: "Female", // Fixed to Title Case for backend validation
         address: formData.location,
         phone_number: formData.phoneNumber,
-        allergies: formData.knownAllergies ? [formData.knownAllergies] : []
+        allergies: formData.knownAllergies ? [formData.knownAllergies] : [],
       };
-      
-      const response = await createPatient(patientData);
-      console.log('Patient created:', response);
+
+      type CreatePatientResponse = { patient_id?: string; [key: string]: any };
+      const response = (await createPatient(
+        patientData
+      )) as CreatePatientResponse;
+      console.log("Patient created:", response);
 
       if (response && response.patient_id) {
+        const patientIdNumber = Number(response.patient_id);
         await updateEncounter({
-          patient_id: response.patient_id,
+          patient_id: patientIdNumber,
           weight: formData.weight,
           height: formData.height,
           blood_pressure: formData.bloodPressure,
@@ -124,17 +129,21 @@ export const PatientRegistrationScreen: React.FC<PatientRegistrationScreenProps>
           consultation_reason: formData.consultationReason,
           diagnosis: formData.diagnosis,
           notes: formData.notes,
-          medications: formData.currentMedications ? [formData.currentMedications] : [],
+          medications: formData.currentMedications
+            ? [formData.currentMedications]
+            : [],
           allergies: formData.knownAllergies ? [formData.knownAllergies] : [],
-          previous_complications: formData.knownComplications ? [formData.knownComplications] : []
+          previous_complications: formData.knownComplications
+            ? [formData.knownComplications]
+            : [],
         });
-        console.log('Encounter created');
+        console.log("Encounter created");
       }
 
       onRegisterSuccess(formData);
     } catch (error) {
-      console.error('Registration failed:', error);
-      setErrors({ firstName: 'Registration failed. Please try again.' });
+      console.error("Registration failed:", error);
+      setErrors({ firstName: "Registration failed. Please try again." });
     } finally {
       setIsSubmitting(false);
     }
@@ -142,26 +151,26 @@ export const PatientRegistrationScreen: React.FC<PatientRegistrationScreenProps>
 
   const handleSendSMSInvite = async () => {
     if (!formData.phoneNumber.trim()) {
-      setErrors({ phoneNumber: 'Phone number is required for SMS invite' });
+      setErrors({ phoneNumber: "Phone number is required for SMS invite" });
       return;
     }
 
     try {
-      const { invitePatient } = await import('../../api');
+      const { invitePatient } = await import("../../api");
       // Generate a temporary patient ID for SMS invite
       const tempPatientId = `temp_${Date.now()}`;
       await invitePatient(tempPatientId, formData.phoneNumber);
-      alert('SMS invite sent successfully!');
+      alert("SMS invite sent successfully!");
     } catch (error) {
-      console.error('SMS invite failed:', error);
-      alert('Failed to send SMS invite. Please try again.');
+      console.error("SMS invite failed:", error);
+      alert("Failed to send SMS invite. Please try again.");
     }
   };
 
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-4"
@@ -176,7 +185,7 @@ export const PatientRegistrationScreen: React.FC<PatientRegistrationScreenProps>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h1 className="text-lg font-bold text-gray-900">
-            {t('registerNewPatient')}
+            {t("registerNewPatient")}
           </h1>
           <div className="w-9" />
         </div>
@@ -193,58 +202,57 @@ export const PatientRegistrationScreen: React.FC<PatientRegistrationScreenProps>
             <div className="flex items-center mb-4">
               <User className="w-5 h-5 text-primary mr-3" />
               <h3 className="text-lg font-bold text-gray-900">
-                {t('personalInformation')}
+                {t("personalInformation")}
               </h3>
             </div>
-            
+
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
-                  label={t('firstName')}
+                  label={t("firstName")}
                   placeholder="Enter first name"
                   value={formData.firstName}
-                  onChange={(value) => handleInputChange('firstName', value)}
+                  onChange={(value) => handleInputChange("firstName", value)}
                   error={errors.firstName}
                   required
                 />
                 <Input
-                  label={t('lastName')}
+                  label={t("lastName")}
                   placeholder="Enter last name"
                   value={formData.lastName}
-                  onChange={(value) => handleInputChange('lastName', value)}
+                  onChange={(value) => handleInputChange("lastName", value)}
                   error={errors.lastName}
                   required
                 />
               </div>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
-                  label={t('age')}
+                  label={t("age")}
                   type="number"
                   placeholder="Enter age"
                   value={formData.age}
-                  onChange={(value) => handleInputChange('age', value)}
+                  onChange={(value) => handleInputChange("age", value)}
                   error={errors.age}
                   required
                 />
                 <Input
-                  label={t('phoneNumber')}
+                  label={t("phoneNumber")}
                   type="tel"
                   placeholder="Enter phone number"
                   value={formData.phoneNumber}
-                  onChange={(value) => handleInputChange('phoneNumber', value)}
+                  onChange={(value) => handleInputChange("phoneNumber", value)}
                   error={errors.phoneNumber}
                   required
                 />
               </div>
-              
+
               <Input
-                label={t('location')}
+                label={t("location")}
                 placeholder="Enter patient's location"
                 value={formData.location}
-                onChange={(value) => handleInputChange('location', value)}
+                onChange={(value) => handleInputChange("location", value)}
                 error={errors.location}
-                icon={<MapPin className="w-4 h-4" />}
                 required
               />
             </div>
@@ -261,41 +269,49 @@ export const PatientRegistrationScreen: React.FC<PatientRegistrationScreenProps>
             <div className="flex items-center mb-4">
               <Baby className="w-5 h-5 text-primary mr-3" />
               <h3 className="text-lg font-bold text-gray-900">
-                {t('pregnancyInformation')}
+                {t("pregnancyInformation")}
               </h3>
             </div>
-            
+
             <div className="space-y-4">
               <Input
-                label={t('gestationalWeek')}
+                label={t("gestationalWeek")}
                 type="number"
                 placeholder="e.g., 24"
                 value={formData.gestationalWeek}
-                onChange={(value) => handleInputChange('gestationalWeek', value)}
+                onChange={(value) =>
+                  handleInputChange("gestationalWeek", value)
+                }
               />
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
-                  label={t('lastMenstrualPeriod')}
+                  label={t("lastMenstrualPeriod")}
                   type="date"
                   value={formData.lastMenstrualPeriod}
-                  onChange={(value) => handleInputChange('lastMenstrualPeriod', value)}
+                  onChange={(value) =>
+                    handleInputChange("lastMenstrualPeriod", value)
+                  }
                 />
                 <Input
-                  label={t('expectedDueDate')}
+                  label={t("expectedDueDate")}
                   type="date"
                   value={formData.expectedDueDate}
-                  onChange={(value) => handleInputChange('expectedDueDate', value)}
+                  onChange={(value) =>
+                    handleInputChange("expectedDueDate", value)
+                  }
                 />
               </div>
-              
+
               <Select
-                label={t('highRiskPregnancy')}
+                label={t("highRiskPregnancy")}
                 value={formData.highRiskPregnancy}
-                onChange={(value) => handleInputChange('highRiskPregnancy', value)}
+                onChange={(value) =>
+                  handleInputChange("highRiskPregnancy", value)
+                }
                 options={[
-                  { value: 'no', label: t('no') },
-                  { value: 'yes', label: t('yes') }
+                  { value: "no", label: t("no") },
+                  { value: "yes", label: t("yes") },
                 ]}
               />
             </div>
@@ -312,38 +328,44 @@ export const PatientRegistrationScreen: React.FC<PatientRegistrationScreenProps>
             <div className="flex items-center mb-4">
               <Stethoscope className="w-5 h-5 text-primary mr-3" />
               <h3 className="text-lg font-bold text-gray-900">
-                {t('medicalHistory')}
+                {t("medicalHistory")}
               </h3>
             </div>
-            
+
             <div className="space-y-4">
               <Input
-                label={t('knownAllergies')}
+                label={t("knownAllergies")}
                 placeholder="e.g., Penicillin, Peanuts"
                 value={formData.knownAllergies}
-                onChange={(value) => handleInputChange('knownAllergies', value)}
+                onChange={(value) => handleInputChange("knownAllergies", value)}
               />
-              
+
               <Input
-                label={t('currentMedications')}
+                label={t("currentMedications")}
                 placeholder="List any medications"
                 value={formData.currentMedications}
-                onChange={(value) => handleInputChange('currentMedications', value)}
+                onChange={(value) =>
+                  handleInputChange("currentMedications", value)
+                }
               />
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
-                  label={t('previousPregnancies')}
+                  label={t("previousPregnancies")}
                   type="number"
                   placeholder="Enter count"
                   value={formData.previousPregnancies}
-                  onChange={(value) => handleInputChange('previousPregnancies', value)}
+                  onChange={(value) =>
+                    handleInputChange("previousPregnancies", value)
+                  }
                 />
                 <Input
-                  label={t('knownComplications')}
+                  label={t("knownComplications")}
                   placeholder="e.g., Preeclampsia"
                   value={formData.knownComplications}
-                  onChange={(value) => handleInputChange('knownComplications', value)}
+                  onChange={(value) =>
+                    handleInputChange("knownComplications", value)
+                  }
                 />
               </div>
             </div>
@@ -363,7 +385,7 @@ export const PatientRegistrationScreen: React.FC<PatientRegistrationScreenProps>
                 Vitals & Encounter
               </h3>
             </div>
-            
+
             <div className="space-y-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <Input
@@ -371,34 +393,36 @@ export const PatientRegistrationScreen: React.FC<PatientRegistrationScreenProps>
                   type="number"
                   placeholder="e.g. 65"
                   value={formData.weight}
-                  onChange={(value) => handleInputChange('weight', value)}
+                  onChange={(value) => handleInputChange("weight", value)}
                 />
                 <Input
                   label="Height (cm)"
                   type="number"
                   placeholder="e.g. 165"
                   value={formData.height}
-                  onChange={(value) => handleInputChange('height', value)}
+                  onChange={(value) => handleInputChange("height", value)}
                 />
                 <Input
                   label="BP (mmHg)"
                   placeholder="e.g. 120/80"
                   value={formData.bloodPressure}
-                  onChange={(value) => handleInputChange('bloodPressure', value)}
+                  onChange={(value) =>
+                    handleInputChange("bloodPressure", value)
+                  }
                 />
                 <Input
                   label="Heart Rate (bpm)"
                   type="number"
                   placeholder="e.g. 72"
                   value={formData.heartRate}
-                  onChange={(value) => handleInputChange('heartRate', value)}
+                  onChange={(value) => handleInputChange("heartRate", value)}
                 />
                 <Input
                   label="Temp (°C)"
                   type="number"
                   placeholder="e.g. 36.5"
                   value={formData.temperature}
-                  onChange={(value) => handleInputChange('temperature', value)}
+                  onChange={(value) => handleInputChange("temperature", value)}
                 />
               </div>
 
@@ -406,21 +430,23 @@ export const PatientRegistrationScreen: React.FC<PatientRegistrationScreenProps>
                 label="Consultation Reason"
                 placeholder="Reason for visit"
                 value={formData.consultationReason}
-                onChange={(value) => handleInputChange('consultationReason', value)}
+                onChange={(value) =>
+                  handleInputChange("consultationReason", value)
+                }
               />
 
               <Input
                 label="Diagnosis"
                 placeholder="Initial diagnosis"
                 value={formData.diagnosis}
-                onChange={(value) => handleInputChange('diagnosis', value)}
+                onChange={(value) => handleInputChange("diagnosis", value)}
               />
 
               <Input
                 label="Notes"
                 placeholder="Additional notes"
                 value={formData.notes}
-                onChange={(value) => handleInputChange('notes', value)}
+                onChange={(value) => handleInputChange("notes", value)}
               />
             </div>
           </Card>
@@ -428,7 +454,7 @@ export const PatientRegistrationScreen: React.FC<PatientRegistrationScreenProps>
       </div>
 
       {/* Action Buttons */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
@@ -442,21 +468,21 @@ export const PatientRegistrationScreen: React.FC<PatientRegistrationScreenProps>
             loading={isSubmitting}
             className="w-full shadow-lg"
           >
-            {t('registerPatient')}
+            {t("registerPatient")}
           </Button>
-          
+
           <Button
             variant="secondary"
             size="lg"
             onClick={handleSendSMSInvite}
             className="w-full"
           >
-            {t('sendSMSInvite')}
+            {t("sendSMSInvite")}
           </Button>
         </div>
-        
+
         <p className="text-center text-xs text-gray-500 mt-4">
-          {t('hipaaCompliant')}
+          {t("hipaaCompliant")}
         </p>
       </motion.div>
     </div>
