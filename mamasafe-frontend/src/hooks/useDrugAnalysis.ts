@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { Drug, DrugInteraction, AnalysisResult } from '@/types'
-import { checkMedication, handleApiError } from '../api'
+import { checkMedication, handleApiError, MedicationCheckResponse } from '../api'
 
 /**
  * Custom hook for managing drug analysis state and operations
@@ -43,7 +43,7 @@ export const useDrugAnalysis = () => {
   }, [])
 
   const analyzeInteractions = useCallback(async (patientId?: string) => {
-    if (drugs.length === 0) return
+    if (drugs.length === 0) return null
 
     setIsAnalyzing(true)
     setError(null)
@@ -57,7 +57,7 @@ export const useDrugAnalysis = () => {
         additional_drugs: additionalDrugs,
         patient_id: patientId,
         language: 'en'
-      })
+      }) as MedicationCheckResponse
 
       // Transform API response to frontend format
       const mockInteractions: DrugInteraction[] = []
@@ -68,7 +68,7 @@ export const useDrugAnalysis = () => {
           id: '1',
           drug1: { id: '1', name: response.drug_name, dosage: '' },
           drug2: { id: '2', name: additionalDrugs[0] || 'Unknown', dosage: '' },
-          severity: response.risk_category.toLowerCase() as any,
+          severity: (response.risk_category?.toLowerCase() || 'moderate') as any,
           description: response.message,
           clinicalImpact: response.personalized_notes || response.message,
           recommendations: response.alternative_drug ? [`Consider ${response.alternative_drug} as alternative`] : [],
@@ -86,8 +86,9 @@ export const useDrugAnalysis = () => {
       }
       
       mockInteractions.forEach(interaction => {
-        if (interaction.severity in severityCounts) {
-          severityCounts[interaction.severity as keyof typeof severityCounts]++
+        const severity = interaction.severity as keyof typeof severityCounts
+        if (severity in severityCounts) {
+          severityCounts[severity]++
         }
       })
 
@@ -98,15 +99,19 @@ export const useDrugAnalysis = () => {
         majorCount: severityCounts.major,
         moderateCount: severityCounts.moderate,
         minorCount: severityCounts.minor,
+        patientName: patientId ? `Patient ${patientId}` : 'Unknown Patient', // Placeholder
+        timestamp: new Date().toISOString()
       }
 
       setInteractions(mockInteractions)
       setAnalysisResult(result)
+      return result
       
     } catch (err) {
       const apiError = handleApiError(err)
       setError(apiError.message)
       console.error('Analysis failed:', err)
+      return null
     } finally {
       setIsAnalyzing(false)
     }

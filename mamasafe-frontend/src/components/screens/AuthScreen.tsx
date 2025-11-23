@@ -26,7 +26,15 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin, onRegister, onSMSAcces
   ]
 
   const handleLogin = async () => {
-    onLogin()
+    if (!username.trim() || !password.trim()) return
+
+    try {
+      await loginUser(username, password)
+      onLogin()
+    } catch (err) {
+      console.error('Login failed:', err)
+      // Error is already handled by useAuth and displayed in the UI
+    }
   }
 
   return (

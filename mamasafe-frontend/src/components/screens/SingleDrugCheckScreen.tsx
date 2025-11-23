@@ -3,36 +3,18 @@ import { motion } from 'framer-motion'
 import { ArrowLeft, AlertTriangle, Pill, Heart, Globe, Plus } from 'lucide-react'
 import { useTranslation } from '../../contexts/TranslationContext'
 import { useMedicationCheck } from '../../hooks/useMedicationCheck'
-
-interface Patient {
-  id: string
-  name: string
-  avatar: string
-  age: number
-  gestationalWeek: number
-  lastVisit: string
-  riskScore: number
-  riskLevel: 'Low' | 'Medium' | 'High'
-}
+import { MedicationCheckResponse } from '../../api'
+import { Patient } from '../../types/patient'
 
 interface SingleDrugCheckScreenProps {
   patient?: Patient
   onBack: () => void
-  onAnalyze: (drugName: string, symptoms?: string) => void
+  onAnalyze: (drugName: string, symptoms?: string, result?: MedicationCheckResponse) => void
   onViewHistory: () => void
 }
 
 const SingleDrugCheckScreen: React.FC<SingleDrugCheckScreenProps> = ({
-  patient = {
-    id: 'MS-837492',
-    name: 'Jessica Alba',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBlxqKL03tQJ2_Mg35vpzD3O0oMwrbsnjw8-ZbDk0PrVuOUSWy-1x5x3Hx7u2iMWRnpnTrIq6rKPX2CHxh6ksMTuNA9DwV6yeYmLqsDm-N6oZ8la2D6oQb6WU3Yni1FGxMshJdO0aSaEx8Q0B7jNgK9DdUbLtaQYIz4hitwjuBVAdtjiRgwXw5XxGRjgP7GfbKHUyURvkd2j2vQiRFeVlg401TjlP26icgpQrEf9l7hCSdx9pOpR3krL5tY99yDAJtouGpKBYH54haS',
-    age: 32,
-    gestationalWeek: 28,
-    lastVisit: '03/15/24',
-    riskScore: 7.8,
-    riskLevel: 'High'
-  },
+  patient,
   onBack,
   onAnalyze,
   onViewHistory
@@ -45,6 +27,20 @@ const SingleDrugCheckScreen: React.FC<SingleDrugCheckScreenProps> = ({
   const [additionalDrugs, setAdditionalDrugs] = useState<string[]>([])
   const [newDrug, setNewDrug] = useState('')
 
+  // Default patient if none provided (fallback)
+  const displayPatient: Patient = patient || {
+    id: 'MS-837492',
+    patientId: 'MS-837492',
+    name: 'Jessica Alba',
+    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBlxqKL03tQJ2_Mg35vpzD3O0oMwrbsnjw8-ZbDk0PrVuOUSWy-1x5x3Hx7u2iMWRnpnTrIq6rKPX2CHxh6ksMTuNA9DwV6yeYmLqsDm-N6oZ8la2D6oQb6WU3Yni1FGxMshJdO0aSaEx8Q0B7jNgK9DdUbLtaQYIz4hitwjuBVAdtjiRgwXw5XxGRjgP7GfbKHUyURvkd2j2vQiRFeVlg401TjlP26icgpQrEf9l7hCSdx9pOpR3krL5tY99yDAJtouGpKBYH54haS',
+    age: 32,
+    gestationalWeek: 28,
+    lastMedCheck: '03/15/24',
+    riskLevel: 'high-risk',
+    phoneNumber: '',
+    location: ''
+  }
+
   const languages = [
     { id: 'en', name: 'English (Default)' },
     { id: 'ha', name: 'Hausa' },
@@ -54,9 +50,9 @@ const SingleDrugCheckScreen: React.FC<SingleDrugCheckScreenProps> = ({
 
   const getRiskColor = (level: string) => {
     switch (level) {
-      case 'High': return 'text-red-600 bg-red-100'
-      case 'Medium': return 'text-orange-600 bg-orange-100'
-      case 'Low': return 'text-green-600 bg-green-100'
+      case 'high-risk': return 'text-red-600 bg-red-100'
+      case 'caution': return 'text-orange-600 bg-orange-100'
+      case 'safe': return 'text-green-600 bg-green-100'
       default: return 'text-gray-600 bg-gray-100'
     }
   }
@@ -67,17 +63,17 @@ const SingleDrugCheckScreen: React.FC<SingleDrugCheckScreenProps> = ({
     try {
       const symptomsArray = symptoms.trim() ? symptoms.split(',').map(s => s.trim()) : []
       
-      await checkDrugSafety({
+      const response = await checkDrugSafety({
         drug_name: drugName.trim(),
         additional_drugs: additionalDrugs,
-        patient_id: patient.id,
-        manual_gestational_week: patient.gestationalWeek,
+        patient_id: displayPatient.id,
+        manual_gestational_week: displayPatient.gestationalWeek,
         symptoms: symptomsArray,
         language: reportLanguage
       })
       
       // Call the original onAnalyze for navigation
-      onAnalyze(drugName.trim(), symptoms.trim() || undefined)
+      onAnalyze(drugName.trim(), symptoms.trim() || undefined, response)
     } catch (err) {
       console.error('Drug analysis failed:', err)
     }
@@ -161,22 +157,22 @@ const SingleDrugCheckScreen: React.FC<SingleDrugCheckScreenProps> = ({
           <div className="flex items-center gap-4 p-4 border-b border-gray-200">
             <div
               className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-16 shrink-0 ring-2 ring-white shadow-md"
-              style={{ backgroundImage: `url("${patient.avatar}")` }}
+              style={{ backgroundImage: `url("${displayPatient.avatar || 'https://ui-avatars.com/api/?name=' + displayPatient.name}")` }}
             />
             <div className="flex-1">
-              <p className="font-bold text-lg text-gray-900">{patient.name}</p>
-              <p className="text-sm text-gray-600">ID: {patient.id}</p>
+              <p className="font-bold text-lg text-gray-900">{displayPatient.name}</p>
+              <p className="text-sm text-gray-600">ID: {displayPatient.patientId}</p>
             </div>
             <motion.div
               className={`flex items-center justify-center size-10 rounded-full ${
-                patient.riskLevel === 'High' ? 'bg-red-100' : 
-                patient.riskLevel === 'Medium' ? 'bg-orange-100' : 'bg-green-100'
+                displayPatient.riskLevel === 'high-risk' ? 'bg-red-100' : 
+                displayPatient.riskLevel === 'caution' ? 'bg-orange-100' : 'bg-green-100'
               }`}
               whileHover={{ scale: 1.1 }}
             >
               <AlertTriangle className={`h-5 w-5 ${
-                patient.riskLevel === 'High' ? 'text-red-600' : 
-                patient.riskLevel === 'Medium' ? 'text-orange-600' : 'text-green-600'
+                displayPatient.riskLevel === 'high-risk' ? 'text-red-600' : 
+                displayPatient.riskLevel === 'caution' ? 'text-orange-600' : 'text-green-600'
               }`} />
             </motion.div>
           </div>
@@ -184,20 +180,20 @@ const SingleDrugCheckScreen: React.FC<SingleDrugCheckScreenProps> = ({
           <div className="grid grid-cols-3 gap-y-4 p-4">
             <div className="text-center">
               <p className="text-xs text-gray-500">Age</p>
-              <p className="font-semibold text-gray-900">{patient.age}</p>
+              <p className="font-semibold text-gray-900">{displayPatient.age}</p>
             </div>
             <div className="text-center">
               <p className="text-xs text-gray-500">Gest. Week</p>
-              <p className="font-semibold text-gray-900">{patient.gestationalWeek}</p>
+              <p className="font-semibold text-gray-900">{displayPatient.gestationalWeek}</p>
             </div>
             <div className="text-center">
               <p className="text-xs text-gray-500">Last Visit</p>
-              <p className="font-semibold text-gray-900">{patient.lastVisit}</p>
+              <p className="font-semibold text-gray-900">{displayPatient.lastMedCheck}</p>
             </div>
             <div className="col-span-3 text-center pt-2">
-              <p className="text-xs text-gray-500">Risk Score</p>
-              <p className={`font-bold text-lg ${getRiskColor(patient.riskLevel).split(' ')[0]}`}>
-                {patient.riskLevel} ({patient.riskScore})
+              <p className="text-xs text-gray-500">Risk Level</p>
+              <p className={`font-bold text-lg ${getRiskColor(displayPatient.riskLevel).split(' ')[0]}`}>
+                {displayPatient.riskLevel.toUpperCase()}
               </p>
             </div>
           </div>

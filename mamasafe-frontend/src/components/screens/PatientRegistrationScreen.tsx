@@ -21,6 +21,14 @@ interface PatientFormData {
   currentMedications: string;
   previousPregnancies: string;
   knownComplications: string;
+  weight: string;
+  height: string;
+  bloodPressure: string;
+  heartRate: string;
+  temperature: string;
+  consultationReason: string;
+  diagnosis: string;
+  notes: string;
 }
 
 interface PatientRegistrationScreenProps {
@@ -46,7 +54,15 @@ export const PatientRegistrationScreen: React.FC<PatientRegistrationScreenProps>
     knownAllergies: '',
     currentMedications: '',
     previousPregnancies: '',
-    knownComplications: ''
+    knownComplications: '',
+    weight: '',
+    height: '',
+    bloodPressure: '',
+    heartRate: '',
+    temperature: '',
+    consultationReason: '',
+    diagnosis: '',
+    notes: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,7 +93,7 @@ export const PatientRegistrationScreen: React.FC<PatientRegistrationScreenProps>
 
     setIsSubmitting(true);
     try {
-      const { createPatient } = await import('../../api');
+      const { createPatient, updateEncounter } = await import('../../api');
       
       // Calculate date of birth from age
       const currentYear = new Date().getFullYear();
@@ -88,7 +104,7 @@ export const PatientRegistrationScreen: React.FC<PatientRegistrationScreenProps>
         first_name: formData.firstName,
         last_name: formData.lastName,
         date_of_birth: dateOfBirth,
-        gender: 'female', // Assuming all patients are female for maternal care
+        gender: 'Female', // Fixed to Title Case for backend validation
         address: formData.location,
         phone_number: formData.phoneNumber,
         allergies: formData.knownAllergies ? [formData.knownAllergies] : []
@@ -96,6 +112,25 @@ export const PatientRegistrationScreen: React.FC<PatientRegistrationScreenProps>
       
       const response = await createPatient(patientData);
       console.log('Patient created:', response);
+
+      if (response && response.patient_id) {
+        await updateEncounter({
+          patient_id: response.patient_id,
+          weight: formData.weight,
+          height: formData.height,
+          blood_pressure: formData.bloodPressure,
+          heart_rate: formData.heartRate,
+          temperature: formData.temperature,
+          consultation_reason: formData.consultationReason,
+          diagnosis: formData.diagnosis,
+          notes: formData.notes,
+          medications: formData.currentMedications ? [formData.currentMedications] : [],
+          allergies: formData.knownAllergies ? [formData.knownAllergies] : [],
+          previous_complications: formData.knownComplications ? [formData.knownComplications] : []
+        });
+        console.log('Encounter created');
+      }
+
       onRegisterSuccess(formData);
     } catch (error) {
       console.error('Registration failed:', error);
@@ -311,6 +346,82 @@ export const PatientRegistrationScreen: React.FC<PatientRegistrationScreenProps>
                   onChange={(value) => handleInputChange('knownComplications', value)}
                 />
               </div>
+            </div>
+          </Card>
+        </motion.div>
+
+        {/* Vitals & Encounter */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Card className="p-5">
+            <div className="flex items-center mb-4">
+              <Stethoscope className="w-5 h-5 text-primary mr-3" />
+              <h3 className="text-lg font-bold text-gray-900">
+                Vitals & Encounter
+              </h3>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <Input
+                  label="Weight (kg)"
+                  type="number"
+                  placeholder="e.g. 65"
+                  value={formData.weight}
+                  onChange={(value) => handleInputChange('weight', value)}
+                />
+                <Input
+                  label="Height (cm)"
+                  type="number"
+                  placeholder="e.g. 165"
+                  value={formData.height}
+                  onChange={(value) => handleInputChange('height', value)}
+                />
+                <Input
+                  label="BP (mmHg)"
+                  placeholder="e.g. 120/80"
+                  value={formData.bloodPressure}
+                  onChange={(value) => handleInputChange('bloodPressure', value)}
+                />
+                <Input
+                  label="Heart Rate (bpm)"
+                  type="number"
+                  placeholder="e.g. 72"
+                  value={formData.heartRate}
+                  onChange={(value) => handleInputChange('heartRate', value)}
+                />
+                <Input
+                  label="Temp (°C)"
+                  type="number"
+                  placeholder="e.g. 36.5"
+                  value={formData.temperature}
+                  onChange={(value) => handleInputChange('temperature', value)}
+                />
+              </div>
+
+              <Input
+                label="Consultation Reason"
+                placeholder="Reason for visit"
+                value={formData.consultationReason}
+                onChange={(value) => handleInputChange('consultationReason', value)}
+              />
+
+              <Input
+                label="Diagnosis"
+                placeholder="Initial diagnosis"
+                value={formData.diagnosis}
+                onChange={(value) => handleInputChange('diagnosis', value)}
+              />
+
+              <Input
+                label="Notes"
+                placeholder="Additional notes"
+                value={formData.notes}
+                onChange={(value) => handleInputChange('notes', value)}
+              />
             </div>
           </Card>
         </motion.div>

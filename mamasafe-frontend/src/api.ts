@@ -226,6 +226,14 @@ export async function updateEncounter(encounterData: {
   previous_complications?: string[];
   notes?: string;
   vital_signs?: Record<string, any>;
+  weight?: string;
+  height?: string;
+  blood_pressure?: string;
+  heart_rate?: string;
+  temperature?: string;
+  consultation_reason?: string;
+  summary?: string;
+  follow_up?: string;
 }) {
   try {
     const response = await apiClient.post('/encounters/update', encounterData);
@@ -417,6 +425,14 @@ export interface EncounterUpdateRequest {
   previous_complications?: string[];
   notes?: string;
   vital_signs?: Record<string, any>;
+  weight?: string;
+  height?: string;
+  blood_pressure?: string;
+  heart_rate?: string;
+  temperature?: string;
+  consultation_reason?: string;
+  summary?: string;
+  follow_up?: string;
 }
 
 export interface EncounterUpdateResponse {

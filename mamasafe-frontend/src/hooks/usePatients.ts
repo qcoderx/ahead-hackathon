@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { searchPatients, createPatient, invitePatient, handleApiError, PatientCreate, PatientCreateResponse, PatientInviteRequest } from '../api'
+import { searchPatients, createPatient, invitePatient, handleApiError, PatientCreate, PatientCreateResponse } from '../api'
 import { Patient } from '../types/patient'
 
 export const usePatients = () => {
@@ -7,52 +7,38 @@ export const usePatients = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const searchPatientsQuery = async (query: string) => {
-    if (!query.trim()) {
-      setPatients([])
-      return
-    }
+  // Load initial patients
+  useEffect(() => {
+    searchPatientsQuery('')
+  }, [])
 
+  const searchPatientsQuery = async (query: string) => {
     setLoading(true)
     setError(null)
     
     try {
-      // Use mock data for now to avoid API errors
-      const mockPatients: Patient[] = [
-        {
-          id: '1',
-          patientId: 'MS-001',
-          name: 'Sarah Johnson',
-          age: 28,
-          gestationalWeek: 24,
-          phoneNumber: '+234-801-234-5678',
-          location: 'Lagos, Nigeria',
-          lastMedCheck: '2024-03-15',
-          riskLevel: 'safe',
-          avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150'
-        },
-        {
-          id: '2',
-          patientId: 'MS-002',
-          name: 'Amina Hassan',
-          age: 32,
-          gestationalWeek: 18,
-          phoneNumber: '+234-802-345-6789',
-          location: 'Abuja, Nigeria',
-          lastMedCheck: '2024-03-14',
-          riskLevel: 'moderate',
-          avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150'
-        }
-      ]
+      // Call real API
+      const response = await searchPatients(query)
       
-      const filtered = mockPatients.filter(p => 
-        p.name.toLowerCase().includes(query.toLowerCase()) ||
-        p.patientId.toLowerCase().includes(query.toLowerCase())
-      )
+      // Map API response to frontend Patient interface
+      // Assuming response is an array of patient objects from backend
+      const mappedPatients: Patient[] = Array.isArray(response) ? response.map((p: any) => ({
+        id: p.id?.toString() || '',
+        patientId: p.patient_id || `MS-${p.id}`,
+        name: `${p.first_name} ${p.last_name}`,
+        age: calculateAge(p.date_of_birth),
+        gestationalWeek: p.gestational_week || 0, // Default if not provided
+        phoneNumber: p.phone_number || '',
+        location: p.address || '',
+        lastMedCheck: p.last_visit_date || new Date().toISOString().split('T')[0],
+        riskLevel: p.risk_level?.toLowerCase() || 'safe',
+        avatar: p.avatar_url || `https://ui-avatars.com/api/?name=${p.first_name}+${p.last_name}&background=random`
+      })) : []
       
-      setPatients(filtered)
+      setPatients(mappedPatients)
     } catch (err) {
-      setError('Search failed')
+      console.error('Search failed:', err)
+      setError('Failed to load patients')
       setPatients([])
     } finally {
       setLoading(false)
@@ -65,6 +51,8 @@ export const usePatients = () => {
     
     try {
       const response: PatientCreateResponse = await createPatient(patientData)
+      // Refresh list after creation
+      await searchPatientsQuery('')
       return response
     } catch (err) {
       const apiError = handleApiError(err)
@@ -92,6 +80,7 @@ export const usePatients = () => {
   }
 
   const calculateAge = (dateOfBirth: string): number => {
+    if (!dateOfBirth) return 0
     const today = new Date()
     const birthDate = new Date(dateOfBirth)
     let age = today.getFullYear() - birthDate.getFullYear()

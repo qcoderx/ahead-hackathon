@@ -34,6 +34,7 @@ interface DashboardScreenProps {
   onNewPatient?: () => void
   onAppointments?: () => void
   onReports?: () => void
+  onSettings?: () => void
   onViewAllPatients?: () => void
   onNotificationClick?: () => void
   onLogout?: () => void
@@ -52,6 +53,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({
   onNewPatient,
   onAppointments,
   onReports,
+  onSettings,
   onViewAllPatients,
   onNotificationClick,
   onLogout
@@ -123,6 +125,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({
                     onDrugAnalysis?.()
                   } else if (item.id === 'patients') {
                     onViewAllPatients?.()
+                  } else if (item.id === 'appointments') {
+                    onAppointments?.()
+                  } else if (item.id === 'reports') {
+                    onReports?.()
+                  } else if (item.id === 'settings') {
+                    onSettings?.()
                   }
                 }}
                 whileHover={{ x: 2 }}

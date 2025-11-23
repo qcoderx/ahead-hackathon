@@ -45,6 +45,8 @@ export interface AnalysisResult {
   majorCount: number;
   moderateCount: number;
   minorCount: number;
+  patientName?: string;
+  timestamp?: string;
 }
 
 /**

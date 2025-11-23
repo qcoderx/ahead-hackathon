@@ -1,24 +1,28 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Plus, X, Search, Pill, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
 import { useTranslation } from '../../contexts/TranslationContext'
 import { useDrugAnalysis } from '../../hooks/useDrugAnalysis'
-
-interface Drug {
-  id: string
-  name: string
-}
+import { AnalysisResult, Drug } from '../../types'
+import { Patient } from '../../types/patient'
 
 interface DrugAnalysisScreenProps {
+  patient?: Patient
   onBack: () => void
-  onAnalyze: (patientId: string, drugs: Drug[]) => void
+  onAnalyze: (patientId: string, drugs: Drug[], result: AnalysisResult) => void
 }
 
-const DrugAnalysisScreen: React.FC<DrugAnalysisScreenProps> = ({ onBack, onAnalyze }) => {
+const DrugAnalysisScreen: React.FC<DrugAnalysisScreenProps> = ({ patient, onBack, onAnalyze }) => {
   const { t } = useTranslation()
   const { drugs, addDrug, removeDrug, analyzeInteractions, isAnalyzing, error } = useDrugAnalysis()
   const [patientId, setPatientId] = useState('')
   const [currentDrug, setCurrentDrug] = useState('')
+
+  useEffect(() => {
+    if (patient) {
+      setPatientId(patient.patientId || patient.id)
+    }
+  }, [patient])
 
   const handleAddDrug = () => {
     if (currentDrug.trim()) {
@@ -30,9 +34,11 @@ const DrugAnalysisScreen: React.FC<DrugAnalysisScreenProps> = ({ onBack, onAnaly
   const handleAnalyze = async () => {
     if (patientId.trim() && drugs.length >= 1) {
       try {
-        await analyzeInteractions(patientId.trim())
-        // Call the original onAnalyze for navigation
-        onAnalyze(patientId.trim(), drugs)
+        const result = await analyzeInteractions(patientId.trim())
+        if (result) {
+          // Call the original onAnalyze for navigation
+          onAnalyze(patientId.trim(), drugs, result)
+        }
       } catch (err) {
         console.error('Analysis failed:', err)
       }
@@ -111,19 +117,35 @@ const DrugAnalysisScreen: React.FC<DrugAnalysisScreenProps> = ({ onBack, onAnaly
           >
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Patient & Medications</h2>
             
-            {/* Patient ID Input */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Patient ID</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-primary focus:bg-white transition-all"
-                  placeholder="Enter patient ID..."
-                  value={patientId}
-                  onChange={(e) => setPatientId(e.target.value)}
+            {/* Patient Info Display if available */}
+            {patient && (
+              <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100 flex items-center gap-4">
+                <div 
+                  className="w-12 h-12 rounded-full bg-cover bg-center border-2 border-white shadow-sm"
+                  style={{ backgroundImage: `url(${patient.avatar || `https://ui-avatars.com/api/?name=${patient.name}`})` }}
                 />
+                <div>
+                  <p className="font-bold text-gray-900">{patient.name}</p>
+                  <p className="text-sm text-gray-600">ID: {patient.patientId}</p>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Patient ID Input (only if no patient selected) */}
+            {!patient && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Patient ID</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-primary focus:bg-white transition-all"
+                    placeholder="Enter patient ID..."
+                    value={patientId}
+                    onChange={(e) => setPatientId(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
             
             <label className="block text-sm font-medium text-gray-700 mb-2">Medications</label>
             
