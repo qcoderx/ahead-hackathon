@@ -1,31 +1,3 @@
-import { useState, useEffect } from 'react'
-import LandingPage from './LandingPage'
-import LanguageSelection from './components/screens/LanguageSelection'
-import AuthScreen from './components/screens/AuthScreen'
-import RegistrationScreen from './components/screens/RegistrationScreen'
-import OfflineAccessScreen from './components/screens/OfflineAccessScreen'
-import PatientPortalScreen from './components/screens/PatientPortalScreen'
-import DashboardScreen from './components/screens/DashboardScreen'
-import SingleDrugCheckScreen from './components/screens/SingleDrugCheckScreen'
-import DrugAnalysisScreen from './components/screens/DrugAnalysisScreen'
-import InteractionResultsScreen from './components/screens/InteractionResultsScreen'
-import MedicationResultsScreen from './components/screens/MedicationResultsScreen'
-import { PatientRegistrationScreen } from './components/screens/PatientRegistrationScreen'
-import { PatientManagementScreen } from './components/screens/PatientManagementScreen'
-import PatientProfileScreen from './components/screens/PatientProfileScreen'
-import AppointmentsScreen from './components/screens/AppointmentsScreen'
-import ScheduleAppointmentScreen from './components/screens/ScheduleAppointmentScreen'
-import AppointmentDetailsScreen from './components/screens/AppointmentDetailsScreen'
-import { mockPatients, mockPatientStats } from './data/mockPatients'
-import { mockInteractionAnalysis } from './data/mockInteractions'
-import { mockDashboardStats, mockRecentPatients } from './data/mockDashboard'
-import { useTranslation } from './contexts/TranslationContext'
-import { useAuth } from './hooks/useAuth'
-import LoadingScreen from './components/ui/LoadingScreen'
-
-/**
- * Exact replication of the HTML design
- * Every element, color, and spacing matches the original
  */
 function App() {
   const [showLanding, setShowLanding] = useState(true)
