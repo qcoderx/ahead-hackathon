@@ -1,0 +1,13 @@
+{
+  "name": "MamaSafe - AI-Powered Pregnancy Care",
+  "short_name": "MamaSafe",
+  "description": "AI-powered medication safety analysis for pregnant women in rural Africa",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#10b77f",
+  "orientation": "portrait-primary",
+  "categories": ["health", "medical", "productivity"],
+  "lang": "en",
+  "icons": []
+}
