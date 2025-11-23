@@ -85,3 +85,6 @@ The app is optimized for deployment on:
 ## 📄 License
 
 This project is licensed under the MIT License.
+
+---
+**Last updated: November 2024**
