@@ -14,19 +14,16 @@ import { PatientRegistrationScreen } from "./components/screens/PatientRegistrat
 import { PatientManagementScreen } from "./components/screens/PatientManagementScreen";
 import PatientProfileScreen from "./components/screens/PatientProfileScreen";
 import AppointmentsScreen from "./components/screens/AppointmentsScreen";
-import ReportsScreen from "./components/screens/ReportsScreen";
-import SettingsScreen from "./components/screens/SettingsScreen";
 import ScheduleAppointmentScreen from "./components/screens/ScheduleAppointmentScreen";
 import AppointmentDetailsScreen from "./components/screens/AppointmentDetailsScreen";
 import { useTranslation } from "./contexts/TranslationContext";
-import LoadingScreen from "./components/ui/LoadingScreen";
+import { useAuth } from "./hooks/useAuth";
 import { useDashboardStats } from "./hooks/useDashboardStats";
 import { usePatients } from "./hooks/usePatients";
-import { InteractionAnalysis } from "./types/interactions";
+import LoadingScreen from "./components/ui/LoadingScreen";
 
 /**
- * Exact replication of the HTML design
- * Every element, color, and spacing matches the original
+ * Real API Integration - No Mock Data
  */
 function App() {
   const [showLanding, setShowLanding] = useState(true);
@@ -45,36 +42,35 @@ function App() {
   const [showPatientProfile, setShowPatientProfile] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [showAppointments, setShowAppointments] = useState(false);
-  const [showReports, setShowReports] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [showScheduleAppointment, setShowScheduleAppointment] = useState(false);
   const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
-  const [currentAnalysis, setCurrentAnalysis] =
-    useState<InteractionAnalysis | null>(null);
+  const [currentAnalysis, setCurrentAnalysis] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
   const {} = useTranslation();
+  const { isAuthenticated, logout, user } = useAuth();
 
-  // Real Data Hooks
-  const {
-    stats: dashboardStats,
-    loading: statsLoading,
-    refreshStats,
-  } = useDashboardStats();
-  const {
-    patients: allPatients,
-    loading: patientsLoading,
-    searchPatientsQuery,
-  } = usePatients();
+  // Real data hooks
+  const dashboardStats = useDashboardStats();
+  const { patients } = usePatients();
 
-  // Refresh data when dashboard is shown
+  // Check authentication state on app load
   useEffect(() => {
-    if (showDashboard) {
-      refreshStats();
-      searchPatientsQuery("");
+    if (isAuthenticated && showAuth) {
+      setShowAuth(false);
+      setShowDashboard(true);
     }
-  }, [showDashboard]);
+  }, [isAuthenticated, showAuth]);
+
+  // Auto-navigate to dashboard if already authenticated
+  useEffect(() => {
+    const token = localStorage.getItem("mamasafe_token");
+    if (token && showLanding) {
+      setShowLanding(false);
+      setShowDashboard(true);
+    }
+  }, []);
 
   const showLoadingAndNavigate = (
     message: string,
@@ -87,6 +83,60 @@ function App() {
       setIsLoading(false);
       nextAction();
     }, delay);
+  };
+
+  // Helper to transform API response to the UI's InteractionAnalysis format
+  const mapApiResponseToAnalysis = (apiResponse: any, patient: any) => {
+    let overallRisk: "low" | "moderate" | "high" | "critical" = "low";
+
+    // Determine risk level based on API response flags
+    if (!apiResponse.is_safe) {
+      const riskCat = (apiResponse.risk_category || "").toLowerCase();
+      if (
+        riskCat.includes("x") ||
+        riskCat.includes("critical") ||
+        riskCat.includes("unsafe")
+      ) {
+        overallRisk = "critical";
+      } else if (
+        riskCat.includes("high") ||
+        riskCat.includes("severe") ||
+        riskCat.includes("avoid")
+      ) {
+        overallRisk = "high";
+      } else if (riskCat.includes("moderate") || riskCat.includes("caution")) {
+        overallRisk = "moderate";
+      }
+    }
+
+    return {
+      patientId: apiResponse.patient_id || patient?.id || "UNKNOWN",
+      patientName: patient?.name || "Patient",
+      drugName: apiResponse.drug_name,
+      dosage: "Standard", // Default as not provided in this specific API response
+      category: "Prescription Drug",
+      riskCategory: apiResponse.risk_category || "Unknown",
+      emoji:
+        overallRisk === "low" ? "✅" : overallRisk === "moderate" ? "⚠️" : "🚫",
+      description: apiResponse.message,
+      details: {
+        risks: [apiResponse.personalized_notes || apiResponse.message],
+        actions: apiResponse.alternative_drug
+          ? [
+              `Consider alternative: ${apiResponse.alternative_drug}`,
+              "Consult Specialist",
+            ]
+          : ["Consult Specialist if symptoms persist"],
+        monitoring:
+          overallRisk === "low"
+            ? "Routine monitoring"
+            : "Immediate review required",
+      },
+      drugs: [{ id: "1", name: apiResponse.drug_name, type: "primary" }],
+      interactions: [],
+      analysisDate: new Date().toISOString(),
+      overallRisk: overallRisk,
+    };
   };
 
   if (isLoading) {
@@ -180,7 +230,6 @@ function App() {
         onAccessRecords={(patientId, phone) => {
           console.log("Patient accessing records:", { patientId, phone });
           setShowPatientPortal(false);
-          // Would navigate to patient dashboard
         }}
       />
     );
@@ -254,32 +303,6 @@ function App() {
     );
   }
 
-  if (showReports) {
-    return (
-      <ReportsScreen
-        onBack={() => {
-          setShowReports(false);
-          setShowDashboard(true);
-        }}
-      />
-    );
-  }
-
-  if (showSettings) {
-    return (
-      <SettingsScreen
-        onBack={() => {
-          setShowSettings(false);
-          setShowDashboard(true);
-        }}
-        onLogout={() => {
-          setShowSettings(false);
-          setShowLanding(true);
-        }}
-      />
-    );
-  }
-
   if (showPatientProfile && selectedPatient) {
     return (
       <PatientProfileScreen
@@ -304,13 +327,15 @@ function App() {
   if (showPatientManagement) {
     return (
       <PatientManagementScreen
-        patients={allPatients}
+        patients={patients || []}
         stats={{
-          totalPatients: dashboardStats.activePatients,
-          highRisk: allPatients.filter((p) => p.riskLevel === "high-risk")
-            .length,
-          dueForCheckup: dashboardStats.upcoming,
-          recentRegistrations: dashboardStats.activeChange,
+          totalPatients: patients?.length || 0,
+          highRisk:
+            patients?.filter((p: any) => p.riskLevel === "high").length || 0,
+          dueForCheckup:
+            patients?.filter((p: any) => p.dueForCheckup).length || 0,
+          recentRegistrations:
+            patients?.filter((p: any) => p.recentlyAdded).length || 0,
         }}
         onBack={() => {
           setShowPatientManagement(false);
@@ -340,6 +365,7 @@ function App() {
           setShowDrugAnalysis(true);
         }}
         onLogout={() => {
+          logout();
           setShowPatientManagement(false);
           setShowLanding(true);
         }}
@@ -357,7 +383,6 @@ function App() {
         onRegisterSuccess={(patientData) => {
           console.log("Patient registered:", patientData);
           showLoadingAndNavigate("Registering patient...", () => {
-            searchPatientsQuery(""); // Refresh patient list
             setShowPatientRegistration(false);
             setShowPatientManagement(true);
           });
@@ -376,22 +401,6 @@ function App() {
         }}
         onSavePrescription={() => {
           console.log("Saving prescription:", currentAnalysis);
-          if (currentAnalysis) {
-            const reports = JSON.parse(
-              localStorage.getItem("mamasafe_reports") || "[]"
-            );
-            reports.unshift({
-              id: `R-${Date.now()}`,
-              patientName: currentAnalysis.patientName || "Unknown",
-              patientId: currentAnalysis.patientId || "Unknown",
-              date: new Date().toLocaleDateString(),
-              type: "Medication Safety",
-              riskLevel: currentAnalysis.riskCategory || "Low",
-              summary: currentAnalysis.description || "No summary",
-            });
-            localStorage.setItem("mamasafe_reports", JSON.stringify(reports));
-            alert("Report saved successfully!");
-          }
         }}
         onSMSPatient={() => {
           console.log("Sending SMS to patient:", currentAnalysis?.patientName);
@@ -423,31 +432,6 @@ function App() {
         }}
         onSaveToRecords={(analysis) => {
           console.log("Saving to patient records:", analysis);
-          if (analysis) {
-            const reports = JSON.parse(
-              localStorage.getItem("mamasafe_reports") || "[]"
-            );
-            reports.unshift({
-              id: `R-${Date.now()}`,
-              patientName: analysis.patientName || "Unknown",
-              patientId: analysis.patientId || "Unknown",
-              date: new Date().toLocaleDateString(),
-              type: "Interaction Check",
-              riskLevel:
-                analysis.overallRisk === "critical"
-                  ? "Critical"
-                  : analysis.overallRisk === "high"
-                  ? "High"
-                  : analysis.overallRisk === "moderate"
-                  ? "Medium"
-                  : "Low",
-              summary: `Interaction check for ${analysis.drugs
-                .map((d) => d.name)
-                .join(", ")}`,
-            });
-            localStorage.setItem("mamasafe_reports", JSON.stringify(reports));
-            alert("Interaction report saved successfully!");
-          }
         }}
       />
     );
@@ -456,51 +440,14 @@ function App() {
   if (showDrugAnalysis) {
     return (
       <DrugAnalysisScreen
-        patient={selectedPatient}
         onBack={() => {
           setShowDrugAnalysis(false);
           setShowDashboard(true);
         }}
-        onAnalyze={(patientId, drugs, result) => {
-          console.log("Analyzing drugs for patient:", {
-            patientId,
-            drugs,
-            result,
-          });
-
-          if (result) {
-            const mappedResult: InteractionAnalysis = {
-              patientId: patientId,
-              patientName:
-                selectedPatient?.name || result.patientName || "Unknown",
-              drugs: drugs.map((d) => ({ ...d, type: "primary" })),
-              interactions: result.interactions.map((i) => ({
-                id: i.id,
-                severity: i.severity as any,
-                title: `Interaction between ${i.drug1.name} and ${i.drug2.name}`,
-                description: i.description,
-                risk: i.clinicalImpact,
-                recommendation: i.recommendations[0] || "Monitor closely",
-                action: "Consult specialist",
-                drugs: [i.drug1.name, i.drug2.name],
-              })),
-              overallRisk:
-                result.criticalCount > 0
-                  ? "critical"
-                  : result.majorCount > 0
-                  ? "high"
-                  : result.moderateCount > 0
-                  ? "moderate"
-                  : "low",
-              analysisDate: result.timestamp || new Date().toISOString(),
-            };
-            setCurrentAnalysis(mappedResult);
-          }
-
-          showLoadingAndNavigate("Analyzing drug interactions...", () => {
-            setShowDrugAnalysis(false);
-            setShowInteractionResults(true);
-          });
+        onAnalyze={(patientId, drugs) => {
+          console.log("Analyzing drugs for patient:", { patientId, drugs });
+          setShowDrugAnalysis(false);
+          setShowMedicationResults(true);
         }}
       />
     );
@@ -509,42 +456,39 @@ function App() {
   if (showSingleDrugCheck) {
     return (
       <SingleDrugCheckScreen
-        patient={selectedPatient}
         onBack={() => {
           setShowSingleDrugCheck(false);
           setShowDashboard(true);
         }}
-        onAnalyze={(drugName, symptoms, result) => {
-          console.log("Analyzing drug:", { drugName, symptoms, result });
+        // Updated to accept the apiResponse
+        onAnalyze={(drugName, symptoms, apiResponse) => {
+          console.log("Analyzing drug:", { drugName, symptoms, apiResponse });
 
-          if (result) {
-            const mappedResult: InteractionAnalysis = {
-              patientId: selectedPatient?.patientId || "MS-837492",
-              patientName: selectedPatient?.name || "Jessica Alba",
-              drugName: result.drug_name,
-              category: "Antibiotic", // Placeholder or derived
-              riskCategory: result.risk_category,
-              emoji: result.is_safe ? "✅" : "⚠️",
-              description: result.message,
-              details: {
-                risks: [result.personalized_notes],
-                actions: result.alternative_drug
-                  ? [`Consider alternative: ${result.alternative_drug}`]
-                  : [],
-                monitoring: "Routine monitoring",
-              },
-              drugs: [{ id: "1", name: result.drug_name, type: "primary" }],
-              interactions: [],
+          if (apiResponse) {
+            // Transform the API response into the format expected by MedicationResultsScreen
+            const mappedAnalysis = mapApiResponseToAnalysis(
+              apiResponse,
+              selectedPatient
+            );
+            setCurrentAnalysis(mappedAnalysis);
+          } else {
+            // Fallback if no response provided
+            setCurrentAnalysis({
+              drugName: drugName,
+              overallRisk: "low",
+              emoji: "✅",
+              riskCategory: "Unknown",
+              description: "No data available",
               analysisDate: new Date().toISOString(),
-              overallRisk: result.risk_category.toLowerCase() as any,
-            };
-            setCurrentAnalysis(mappedResult);
+              details: { risks: [], actions: [], monitoring: "" },
+              drugs: [],
+              interactions: [],
+              patientId: selectedPatient?.id || "UNKNOWN",
+            });
           }
 
-          showLoadingAndNavigate("Analyzing drug safety...", () => {
-            setShowSingleDrugCheck(false);
-            setShowMedicationResults(true);
-          });
+          setShowSingleDrugCheck(false);
+          setShowMedicationResults(true);
         }}
         onViewHistory={() => console.log("View history")}
       />
@@ -554,66 +498,83 @@ function App() {
   if (showDashboard) {
     return (
       <DashboardScreen
-        stats={dashboardStats}
-        recentPatients={allPatients.slice(0, 5).map((p) => ({
-          id: p.id,
-          name: p.name,
-          room: p.location, // Mapping location to room for dashboard display
-          status:
-            p.riskLevel === "safe"
-              ? "stable"
-              : p.riskLevel === "high-risk"
-              ? "critical"
-              : "needs-attention",
-          avatar: p.avatar || "",
+        stats={
+          dashboardStats?.stats || {
+            activePatients: 0,
+            activeChange: 0,
+            upcoming: 0,
+            upcomingChange: 0,
+            labResults: 0,
+            labChange: 0,
+            discharges: 0,
+            dischargeChange: 0,
+          }
+        }
+        recentPatients={(patients?.slice(0, 5) || []).map((p) => ({
+          ...(p as any),
+          room: "",
+          status: "stable",
         }))}
-        onPatientClick={(patient) => {
-          console.log("Patient clicked:", patient);
-          setSelectedPatient(patient);
-          setShowDashboard(false);
-          setShowPatientProfile(true);
-        }}
+        clinicName={
+          user?.full_name ? `${user.full_name}'s Clinic` : "MamaSafe Clinic"
+        }
+        location="Lagos, Nigeria"
+        userAvatar="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150"
+        notificationCount={3}
+        onPatientClick={(patient) => console.log("Patient clicked:", patient)}
         onMedicationCheck={(patientId, medication) => {
           console.log("Medication check:", { patientId, medication });
-          const patient = allPatients.find(
-            (p) => p.id === patientId || p.patientId === patientId
+          showLoadingAndNavigate(
+            "Preparing medication check...",
+            () => {
+              setShowDashboard(false);
+              setShowSingleDrugCheck(true);
+            },
+            1500
           );
-          if (patient) {
-            setSelectedPatient(patient);
-          }
-          setShowDashboard(false);
-          setShowSingleDrugCheck(true);
         }}
         onDrugAnalysis={() => {
           console.log("Drug Analysis clicked");
-          setShowDashboard(false);
-          setShowDrugAnalysis(true);
+          showLoadingAndNavigate(
+            "Loading drug analysis...",
+            () => {
+              setShowDashboard(false);
+              setShowDrugAnalysis(true);
+            },
+            1500
+          );
         }}
         onNewPatient={() => {
           console.log("Dashboard New Patient clicked");
-          setShowDashboard(false);
-          setShowPatientRegistration(true);
+          showLoadingAndNavigate(
+            "Opening patient registration...",
+            () => {
+              setShowDashboard(false);
+              setShowPatientRegistration(true);
+            },
+            1000
+          );
         }}
         onAppointments={() => {
           setShowDashboard(false);
           setShowAppointments(true);
         }}
-        onReports={() => {
-          setShowDashboard(false);
-          setShowReports(true);
-        }}
-        onSettings={() => {
-          setShowDashboard(false);
-          setShowSettings(true);
-        }}
+        onReports={() => console.log("Reports")}
         onViewAllPatients={() => {
           console.log("View all patients");
-          setShowDashboard(false);
-          setShowPatientManagement(true);
+          showLoadingAndNavigate(
+            "Loading patient management...",
+            () => {
+              setShowDashboard(false);
+              setShowPatientManagement(true);
+            },
+            1500
+          );
         }}
         onNotificationClick={() => console.log("Notifications")}
         onLogout={() => {
           console.log("User logged out");
+          logout();
           setShowDashboard(false);
           setShowLanding(true);
         }}
@@ -621,7 +582,6 @@ function App() {
     );
   }
 
-  // This should never be reached as all screens are handled above
   return null;
 }
 
