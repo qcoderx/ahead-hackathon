@@ -21,6 +21,7 @@ import { useTranslation } from "./contexts/TranslationContext";
 import { useAuth } from "./hooks/useAuth";
 import { useDashboardStats } from "./hooks/useDashboardStats";
 import { usePatients } from "./hooks/usePatients";
+import { usePWA } from "./hooks/usePWA";
 import LoadingScreen from "./components/ui/LoadingScreen";
 import { mapRiskLevel } from "./utils/riskMapper";
 
@@ -63,6 +64,7 @@ function App() {
   // Real data hooks
   const dashboardStats = useDashboardStats();
   const { patients } = usePatients();
+  const { isInstallable, installApp } = usePWA();
 
   // Check authentication state on app load
   useEffect(() => {
