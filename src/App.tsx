@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import LandingPage from './LandingPage'
+import { usePWA } from './hooks/usePWA'
 import LanguageSelection from './components/screens/LanguageSelection'
 import AuthScreen from './components/screens/AuthScreen'
 import RegistrationScreen from './components/screens/RegistrationScreen'
@@ -22,6 +23,8 @@ import { mockPatients, mockPatientStats } from './data/mockPatients'
 import { mockInteractionAnalysis } from './data/mockInteractions'
 import { mockDashboardStats, mockRecentPatients } from './data/mockDashboard'
 import LoadingScreen from './components/ui/LoadingScreen'
+import PWAInstallPrompt from './components/ui/PWAInstallPrompt'
+import OfflineIndicator from './components/ui/OfflineIndicator'
 
 /**
  * Exact replication of the HTML design
@@ -53,6 +56,21 @@ function App() {
   const [showAdminAnalytics, setShowAdminAnalytics] = useState(false)
   const [showEmergencyAlert, setShowEmergencyAlert] = useState(false)
   const [currentAlert, setCurrentAlert] = useState<any>(null)
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false)
+  const { isInstallable, isOnline, installApp, registerServiceWorker } = usePWA()
+
+  useEffect(() => {
+    registerServiceWorker()
+    
+    // Show install prompt after 30 seconds if installable
+    const timer = setTimeout(() => {
+      if (isInstallable) {
+        setShowInstallPrompt(true)
+      }
+    }, 30000)
+    
+    return () => clearTimeout(timer)
+  }, [isInstallable, registerServiceWorker])
 
   const showLoadingAndNavigate = (message: string, nextAction: () => void, delay = 3000) => {
     setIsLoading(true)
@@ -457,7 +475,14 @@ function App() {
   }
 
   // This should never be reached as all screens are handled above
-  return null
+  return (
+    <>
+      <OfflineIndicator />
+      {showInstallPrompt && (
+        <PWAInstallPrompt onClose={() => setShowInstallPrompt(false)} />
+      )}
+    </>
+  )
 }
 
 export default App
