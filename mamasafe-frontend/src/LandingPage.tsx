@@ -349,7 +349,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onPatientAccess }
                   className="rounded-lg bg-purple-500 px-6 py-2 text-sm font-semibold text-white transition hover:bg-purple-600"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={onPatientAccess}
+                  onClick={() => window.open('https://sms-simulator.vercel.app', '_blank')}
                 >
                   Access Records
                 </motion.button>
