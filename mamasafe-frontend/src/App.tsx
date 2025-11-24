@@ -23,6 +23,7 @@ import { useDashboardStats } from "./hooks/useDashboardStats";
 import { usePatients } from "./hooks/usePatients";
 import { usePWA } from "./hooks/usePWA";
 import LoadingScreen from "./components/ui/LoadingScreen";
+import { PWAInstallButton } from "./components/ui/PWAInstallButton";
 import { mapRiskLevel } from "./utils/riskMapper";
 
 /**
@@ -700,7 +701,11 @@ function App() {
     );
   }
 
-  return null;
+  return (
+    <>
+      <PWAInstallButton />
+    </>
+  );
 }
 
 export default App;

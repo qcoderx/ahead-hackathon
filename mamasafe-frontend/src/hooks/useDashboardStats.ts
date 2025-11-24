@@ -21,6 +21,13 @@ export const useDashboardStats = () => {
   }, [])
 
   const fetchStats = async () => {
+    // Check if user is authenticated before making API calls
+    const token = localStorage.getItem('mamasafe_token')
+    if (!token) {
+      console.log('No auth token found, skipping dashboard stats fetch')
+      return
+    }
+
     setLoading(true)
     setError(null)
     
@@ -28,10 +35,6 @@ export const useDashboardStats = () => {
       const response = await getAnalyticsOverview()
       
       // Map API response to DashboardStats
-      // Assuming response has keys like total_patients, etc.
-      // If API returns different structure, we map it here.
-      // For now, we'll map what we can and default the rest.
-      
       setStats({
         activePatients: response.total_patients || 0,
         activeChange: response.patient_growth_rate || 0,
@@ -43,8 +46,13 @@ export const useDashboardStats = () => {
         dischargeChange: 0
       })
     } catch (err) {
-      console.error('Failed to fetch dashboard stats:', err)
-      setError('Failed to load dashboard statistics')
+      const apiError = handleApiError(err)
+      console.error('Failed to fetch dashboard stats:', apiError)
+      
+      // Don't show error for 401 - user just needs to login
+      if (apiError.status !== 401) {
+        setError('Failed to load dashboard statistics')
+      }
     } finally {
       setLoading(false)
     }

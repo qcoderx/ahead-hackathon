@@ -16,12 +16,14 @@ export const usePWA = () => {
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('PWA install prompt available')
       e.preventDefault()
       setDeferredPrompt(e as BeforeInstallPromptEvent)
       setIsInstallable(true)
     }
 
     const handleAppInstalled = () => {
+      console.log('PWA installed successfully')
       setIsInstalled(true)
       setIsInstallable(false)
       setDeferredPrompt(null)
@@ -31,9 +33,18 @@ export const usePWA = () => {
     window.addEventListener('appinstalled', handleAppInstalled)
 
     // Check if app is already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    if (window.matchMedia('(display-mode: standalone)').matches || 
+        window.navigator.standalone === true) {
       setIsInstalled(true)
     }
+
+    // Debug PWA criteria
+    console.log('PWA Debug Info:', {
+      isSecure: location.protocol === 'https:' || location.hostname === 'localhost',
+      hasServiceWorker: 'serviceWorker' in navigator,
+      isStandalone: window.matchMedia('(display-mode: standalone)').matches,
+      userAgent: navigator.userAgent
+    })
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
