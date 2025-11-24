@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Pill, Zap, CheckCircle, AlertTriangle } from 'lucide-react'
 import { useTranslation } from '../../contexts/TranslationContext'
+import { useMedicationCheck } from '../../hooks/useMedicationCheck'
 
 interface QuickMedicationCheckProps {
   onCheck?: (patientId: string, medication: string) => void
@@ -9,23 +10,30 @@ interface QuickMedicationCheckProps {
 
 const QuickMedicationCheck: React.FC<QuickMedicationCheckProps> = ({ onCheck }) => {
   const { t } = useTranslation()
+  const { checkDrugSafety, loading, result: apiResult } = useMedicationCheck()
   const [patientId, setPatientId] = useState('')
   const [medication, setMedication] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<'safe' | 'warning' | null>(null)
 
   const handleCheck = async () => {
     if (!patientId.trim() || !medication.trim()) return
     
-    setIsLoading(true)
-    setResult(null)
-    
-    setTimeout(() => {
-      setIsLoading(false)
-      // Mock result
-      setResult(Math.random() > 0.5 ? 'safe' : 'warning')
+    try {
+      const response = await checkDrugSafety({
+        drug_name: medication.trim(),
+        patient_id: patientId.trim(),
+        language: 'en'
+      })
+      
+      if (response) {
+        setResult(response.is_safe ? 'safe' : 'warning')
+      }
+      
       onCheck?.(patientId.trim(), medication.trim())
-    }, 2000)
+    } catch (error) {
+      console.error('Medication check failed:', error)
+      setResult('warning')
+    }
   }
 
   const canCheck = patientId.trim() && medication.trim()
@@ -136,7 +144,7 @@ const QuickMedicationCheck: React.FC<QuickMedicationCheckProps> = ({ onCheck }) 
         <motion.button
           className="w-full bg-primary text-white font-medium py-3 px-6 rounded-lg shadow-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleCheck}
-          disabled={!canCheck || isLoading}
+          disabled={!canCheck || loading}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.9 }}
@@ -149,18 +157,18 @@ const QuickMedicationCheck: React.FC<QuickMedicationCheckProps> = ({ onCheck }) 
           <motion.div
             className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"
             animate={{
-              x: isLoading ? [-100, 300] : -100
+              x: loading ? [-100, 300] : -100
             }}
             transition={{
               duration: 1.5,
-              repeat: isLoading ? Infinity : 0,
+              repeat: loading ? Infinity : 0,
               ease: 'linear'
             }}
           />
           
           <div className="relative z-10 flex items-center justify-center gap-3">
             <AnimatePresence mode="wait">
-              {isLoading ? (
+              {loading ? (
                 <motion.div
                   key="loading"
                   initial={{ opacity: 0, scale: 0 }}
@@ -183,7 +191,7 @@ const QuickMedicationCheck: React.FC<QuickMedicationCheckProps> = ({ onCheck }) 
             </AnimatePresence>
             
             <span className="text-sm">
-              {isLoading ? 'Analyzing...' : t('dashboard.checkCompatibility')}
+              {loading ? 'Analyzing...' : t('dashboard.checkCompatibility')}
             </span>
           </div>
         </motion.button>

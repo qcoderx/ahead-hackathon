@@ -11,8 +11,6 @@ const apiClient = axios.create({
   withCredentials: false,
 });
 
-
-
 // Set JWT token for authorization header
 export function setAuthToken(authToken: string) {
   apiClient.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
@@ -49,7 +47,7 @@ export async function register(userData: UserCreate) {
     const response = await axios.post(`${API_BASE_URL}/auth/register`, {
       email: userData.email,
       password: userData.password,
-      full_name: userData.full_name || null,
+      full_name: userData.full_name,
       role: userData.role || 'provider',
       is_active: userData.is_active ?? true,
       is_superuser: userData.is_superuser ?? false

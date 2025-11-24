@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MamaSafe SMS Simulator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        .phone {
+            width: 350px;
+            height: 700px;
+            background: #000;
+            border-radius: 30px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .status-bar {
+            background: #f8f9fa;
+            padding: 8px 15px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .status-icons {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+        .chat-header {
+            background: #28a745;
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .contact-avatar {
+            width: 45px;
+            height: 45px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .contact-info h3 { 
+            font-size: 18px; 
+            margin: 0; 
+            font-weight: 600;
+        }
+        .contact-info p { 
+            font-size: 13px; 
+            opacity: 0.9; 
+            margin: 2px 0 0 0; 
+        }
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+        }
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .message.sent {
+            align-items: flex-end;
+        }
+        .message.received {
+            align-items: flex-start;
+        }
+        .message-bubble {
+            max-width: 85%;
+            padding: 14px 18px;
+            border-radius: 20px;
+            font-size: 15px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .message.sent .message-bubble {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+        .message.received .message-bubble {
+            background: white;
+            color: #333;
+            border: 1px solid #e9ecef;
+        }
+        .message-time {
+            font-size: 11px;
+            color: #6c757d;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+        .input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .message-input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .message-input:focus {
+            border-color: #28a745;
+        }
+        .send-btn {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+        .send-btn:hover { 
+            transform: scale(1.05);
+        }
+        .typing-indicator {
+            display: none;
+            padding: 10px 0;
+        }
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: #6c757d;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+        .welcome-message {
+            text-align: center;
+            color: #28a745;
+            font-weight: 600;
+        }
+        @media (max-width: 768px) {
+            .phone { 
+                width: 100%; 
+                max-width: 350px; 
+                height: 80vh;
+                min-height: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="phone">
+            <div class="screen">
+                <div class="status-bar">
+                    <span>9:41 AM</span>
+                    <div class="status-icons">
+                        <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+                            <rect x="0" y="4" width="4" height="8" rx="1" fill="#333"/>
+                            <rect x="5" y="2" width="4" height="10" rx="1" fill="#333"/>
+                            <rect x="10" y="0" width="4" height="12" rx="1" fill="#333"/>
+                            <rect x="15" y="1" width="3" height="11" rx="1" fill="#333"/>
+                        </svg>
+                        <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
+                            <rect x="1" y="1" width="22" height="10" rx="2" stroke="#333" stroke-width="1" fill="none"/>
+                            <rect x="23" y="4" width="2" height="4" rx="1" fill="#333"/>
+                            <rect x="2" y="2" width="18" height="8" rx="1" fill="#28a745"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="chat-header">
+                    <div class="contact-avatar">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                            <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 7.5V9M15 11.5C15.8 12.3 16 13.4 16 14.5V22H14V16H10V22H8V14.5C8 13.4 8.2 12.3 9 11.5L12 8.5L15 11.5Z"/>
+                        </svg>
+                    </div>
+                    <div class="contact-info">
+                        <h3>MamaSafe</h3>
+                        <p>+1 574 766 6877</p>
+                    </div>
+                </div>
+                <div class="messages" id="messages">
+                    <div class="message received">
+                        <div class="message-bubble welcome-message">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 8px;">
+                                <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 7.5V9M15 11.5C15.8 12.3 16 13.4 16 14.5V22H14V16H10V22H8V14.5C8 13.4 8.2 12.3 9 11.5L12 8.5L15 11.5Z"/>
+                            </svg>
+                            Welcome to MamaSafe!<br>
+                            Send HELP to see available commands.
+                        </div>
+                        <div class="message-time">9:40 AM</div>
+                    </div>
+                </div>
+                <div class="typing-indicator" id="typing">
+                    <div class="message received">
+                        <div class="message-bubble">
+                            <div class="typing-dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-area">
+                    <input type="text" class="message-input" id="messageInput" placeholder="Type a message...">
+                    <button class="send-btn" onclick="sendMessage()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                            <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function getCurrentTime() {
+            return new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        function addMessage(text, type) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            messageDiv.innerHTML = `
+                <div class="message-bubble">${text}</div>
+                <div class="message-time">${getCurrentTime()}</div>
+            `;
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function showTyping() {
+            document.getElementById('typing').style.display = 'block';
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function hideTyping() {
+            document.getElementById('typing').style.display = 'none';
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+
+            // Add sent message
+            addMessage(message, 'sent');
+            input.value = '';
+
+            // Show typing indicator
+            showTyping();
+
+            try {
+                const response = await fetch('https://ahead-hackathon.onrender.com/api/v1/sms/webhook', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `Body=${encodeURIComponent(message)}&From=+18777804236&To=+15747666877&MessageSid=SM123&AccountSid=AC123`
+                });
+
+                const result = await response.text();
+                
+                // Extract message from TwiML
+                const messageMatch = result.match(/<Message>(.*?)<\/Message>/s);
+                let responseText = messageMatch ? messageMatch[1] : 'Service unavailable';
+                
+                // Format response with line breaks
+                responseText = responseText.replace(/\\n/g, '<br>');
+                
+                // Hide typing and show response
+                setTimeout(() => {
+                    hideTyping();
+                    addMessage(responseText, 'received');
+                }, 1000);
+
+            } catch (error) {
+                setTimeout(() => {
+                    hideTyping();
+                    addMessage('Connection error. Please try again.', 'received');
+                }, 1000);
+            }
+        }
+
+        // Allow Enter key to send
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>

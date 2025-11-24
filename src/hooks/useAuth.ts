@@ -37,7 +37,6 @@ export const useAuth = () => {
       localStorage.setItem('mamasafe_token', access_token)
       setIsAuthenticated(true)
       
-      // Set user data (you might need to fetch user profile separately)
       setUser({
         id: '1',
         email: username,

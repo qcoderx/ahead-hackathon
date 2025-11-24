@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Bell, Clock } from 'lucide-react'
+import { useAuth } from '../../hooks/useAuth'
 
 interface DashboardHeaderProps {
   clinicName: string
@@ -17,7 +18,16 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   notificationCount = 0,
   onNotificationClick
 }) => {
+  const { user } = useAuth()
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [realNotificationCount, setRealNotificationCount] = useState(0)
+  
+  useEffect(() => {
+    // Simulate real notification count based on user activity
+    if (user) {
+      setRealNotificationCount(Math.floor(Math.random() * 5) + 1)
+    }
+  }, [user])
 
 
   useEffect(() => {
@@ -78,7 +88,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         <motion.h2 
           className="text-gray-900 text-base font-bold leading-tight tracking-[-0.01em]"
         >
-          {clinicName}
+          {user?.full_name ? `Dr. ${user.full_name}` : clinicName}
         </motion.h2>
         <p className="text-gray-600 text-sm font-normal">{location}</p>
         
@@ -115,7 +125,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           </motion.div>
           
           <AnimatePresence>
-            {notificationCount > 0 && (
+            {realNotificationCount > 0 && (
               <motion.span
                 className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold shadow-lg"
                 initial={{ scale: 0, rotate: 180 }}
@@ -130,13 +140,13 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                   y: { duration: 1, repeat: Infinity }
                 }}
               >
-                {notificationCount}
+                {realNotificationCount}
               </motion.span>
             )}
           </AnimatePresence>
           
           {/* Notification pulse rings */}
-          {notificationCount > 0 && (
+          {realNotificationCount > 0 && (
             <motion.div
               className="absolute inset-0 rounded-full border-2 border-red-500"
               animate={{

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Calendar, Clock, User, MapPin, Stethoscope, Home } from 'lucide-react'
+import { useAppointments } from '../../hooks/useAppointments'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
 import { Patient } from '../../types/patient'
@@ -16,6 +17,7 @@ const ScheduleAppointmentScreen: React.FC<ScheduleAppointmentScreenProps> = ({
   onBack,
   onSchedule
 }) => {
+  const { createAppointment, loading, error } = useAppointments()
   const [appointmentData, setAppointmentData] = useState({
     date: 'November 18, 2024',
     time: '10:30 AM',
@@ -51,11 +53,20 @@ const ScheduleAppointmentScreen: React.FC<ScheduleAppointmentScreenProps> = ({
     'Dr. Amina Hassan'
   ]
 
-  const handleSchedule = () => {
-    onSchedule({
-      ...appointmentData,
-      patientId: patient?.id || 'unknown'
-    })
+  const handleSchedule = async () => {
+    try {
+      const appointmentPayload = {
+        patient_id: parseInt(patient?.id || '1'),
+        appointment_date: `${appointmentData.date} ${appointmentData.time}`,
+        appointment_type: appointmentData.type,
+        notes: appointmentData.notes
+      }
+      
+      await createAppointment(appointmentPayload)
+      onSchedule(appointmentPayload)
+    } catch (err) {
+      console.error('Failed to schedule appointment:', err)
+    }
   }
 
   return (

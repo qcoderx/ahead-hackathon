@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Default (Home/Role Selection) - Greenish */
+  --color-primary: #13ec37;
+  --color-primary-light: #52b788;
+  --color-secondary: #2e8b57;
+}
+
+.provider-theme {
+  /* Provider - Blue */
+  --color-primary: #005a9c;
+  --color-primary-light: #4a90e2; /* Adjusted for blue theme */
+  --color-secondary: #2e8b57;
+}
+
+.patient-theme {
+  /* Patient - Dark Green */
+  --color-primary: #2d6a4f;
+  --color-primary-light: #52b788;
+  --color-secondary: #13ec37;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}

@@ -38,7 +38,7 @@ const SingleDrugCheckScreen: React.FC<SingleDrugCheckScreenProps> = ({
   onViewHistory
 }) => {
   const { t, currentLanguage, setLanguage } = useTranslation()
-  const { checkDrugSafety, loading, error, result, clearResult } = useMedicationCheck()
+  const { checkDrugSafety, loading, error, result } = useMedicationCheck()
   const [drugName, setDrugName] = useState('')
   const [symptoms, setSymptoms] = useState('')
   const [reportLanguage, setReportLanguage] = useState('en')
@@ -67,7 +67,7 @@ const SingleDrugCheckScreen: React.FC<SingleDrugCheckScreenProps> = ({
     try {
       const symptomsArray = symptoms.trim() ? symptoms.split(',').map(s => s.trim()) : []
       
-      const result = await checkDrugSafety({
+      await checkDrugSafety({
         drug_name: drugName.trim(),
         additional_drugs: additionalDrugs,
         patient_id: patient.id,
@@ -75,11 +75,6 @@ const SingleDrugCheckScreen: React.FC<SingleDrugCheckScreenProps> = ({
         symptoms: symptomsArray,
         language: reportLanguage
       })
-      
-      // If critical risk detected, could trigger emergency alert
-      if (result && (result.risk_category === 'CONTRAINDICATED' || result.risk_score && result.risk_score > 8)) {
-        console.log('High risk detected, consider emergency alert')
-      }
       
       // Call the original onAnalyze for navigation
       onAnalyze(drugName.trim(), symptoms.trim() || undefined)

@@ -17,42 +17,25 @@ export const usePatients = () => {
     setError(null)
     
     try {
-      // Use mock data for now to avoid API errors
-      const mockPatients: Patient[] = [
-        {
-          id: '1',
-          patientId: 'MS-001',
-          name: 'Sarah Johnson',
-          age: 28,
-          gestationalWeek: 24,
-          phoneNumber: '+234-801-234-5678',
-          location: 'Lagos, Nigeria',
-          lastMedCheck: '2024-03-15',
-          riskLevel: 'safe',
-          avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150'
-        },
-        {
-          id: '2',
-          patientId: 'MS-002',
-          name: 'Amina Hassan',
-          age: 32,
-          gestationalWeek: 18,
-          phoneNumber: '+234-802-345-6789',
-          location: 'Abuja, Nigeria',
-          lastMedCheck: '2024-03-14',
-          riskLevel: 'moderate',
-          avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150'
-        }
-      ]
+      const response = await searchPatients(query)
+      // Transform backend response to frontend format
+      const transformedPatients: Patient[] = response.map((p: any) => ({
+        id: p.id?.toString() || '1',
+        patientId: p.patient_id || `MS-${p.id}`,
+        name: `${p.first_name || ''} ${p.last_name || ''}`.trim(),
+        age: p.date_of_birth ? calculateAge(p.date_of_birth) : 25,
+        gestationalWeek: 20,
+        phoneNumber: p.phone_number || '',
+        location: p.address || 'Unknown',
+        lastMedCheck: new Date().toISOString().split('T')[0],
+        riskLevel: 'safe' as const,
+        avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150'
+      }))
       
-      const filtered = mockPatients.filter(p => 
-        p.name.toLowerCase().includes(query.toLowerCase()) ||
-        p.patientId.toLowerCase().includes(query.toLowerCase())
-      )
-      
-      setPatients(filtered)
+      setPatients(transformedPatients)
     } catch (err) {
-      setError('Search failed')
+      const apiError = handleApiError(err)
+      setError(apiError.message)
       setPatients([])
     } finally {
       setLoading(false)

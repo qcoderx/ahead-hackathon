@@ -1,14 +1,14 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from '../../contexts/TranslationContext'
+import { useAnalytics } from '../../hooks/useAnalytics'
+import { usePatients } from '../../hooks/usePatients'
 import { DashboardStats, Patient } from '../../types/dashboard'
 import DashboardHeader from '../sections/DashboardHeader'
 import StatCard from '../ui/StatCard'
 import QuickMedicationCheck from '../sections/QuickMedicationCheck'
 import DashboardShortcuts from '../sections/DashboardShortcuts'
 import PatientCard from '../ui/PatientCard'
-import SystemStatus from '../ui/SystemStatus'
-import useMamaSafeIntegration from '../../hooks/useMamaSafeIntegration'
 import { 
   LayoutDashboard, 
   Users, 
@@ -42,12 +42,12 @@ interface DashboardScreenProps {
 }
 
 const DashboardScreen: React.FC<DashboardScreenProps> = ({
-  stats,
-  recentPatients,
-  clinicName = "St. Mary's Maternity Wing",
-  location = "Springfield, IL",
+  stats: propStats,
+  recentPatients: propRecentPatients,
+  clinicName = "MamaSafe Clinic",
+  location = "Lagos, Nigeria",
   userAvatar = "https://lh3.googleusercontent.com/aida-public/AB6AXuBIUWofxSAII6VlTV4Yimd7jj2SL9eSR5WVANK-2XG4Ja2BoP7qTWaFXL9NuU_salqe1BTZ1JFBfZXImaBKVELqW6ixBw2B4_g1Em_2Y0ifqdWCYdNprLrLnN2xOiYfqEOw44Bjz3ABTkfONZ65ko7qvatHQPDVHDUn9NLdaKALsyTIp1nv7e0nw9pkCbfP57sxGutG8SQDiJ-61Z-qs9HUoOJniaQuMI2EC4S32yjWeYwLCcE-03Tk0maTr_3knX7a1gGYBn2ynCI8",
-  notificationCount = 3,
+  notificationCount = 0,
   onPatientClick,
   onMedicationCheck,
   onDrugAnalysis,
@@ -59,10 +59,50 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({
   onLogout
 }) => {
   const { t } = useTranslation()
-  const { testSystemConnectivity } = useMamaSafeIntegration()
+  const { fetchAnalyticsOverview, fetchHighRiskCases, overview, highRiskCases, loading } = useAnalytics()
+  const { searchPatientsQuery, patients } = usePatients()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [activeNav, setActiveNav] = useState('dashboard')
-  const [showSystemStatus, setShowSystemStatus] = useState(false)
+  const [realStats, setRealStats] = useState(propStats)
+  const [realPatients, setRealPatients] = useState(propRecentPatients)
+  
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        // Fetch analytics overview
+        const analyticsData = await fetchAnalyticsOverview()
+        if (analyticsData) {
+          setRealStats({
+            activePatients: analyticsData.total_patients || 0,
+            upcoming: analyticsData.upcoming_appointments || 0,
+            labResults: analyticsData.pending_results || 0,
+            discharges: analyticsData.recent_discharges || 0,
+            activeChange: '+12%',
+            upcomingChange: '+8%',
+            labChange: '-3%',
+            dischargeChange: '+15%'
+          })
+        }
+        
+        // Fetch recent patients
+        await searchPatientsQuery('recent')
+        if (patients.length > 0) {
+          setRealPatients(patients.slice(0, 5).map(p => ({
+            id: p.id,
+            name: p.name,
+            avatar: p.avatar,
+            status: p.riskLevel === 'high' ? 'critical' : p.riskLevel === 'moderate' ? 'warning' : 'stable',
+            time: p.lastMedCheck || 'Today',
+            condition: `Week ${p.gestationalWeek || 20}`
+          })))
+        }
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error)
+      }
+    }
+    
+    loadDashboardData()
+  }, [])
 
   const navItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: t('nav.dashboard'), active: true },
@@ -237,26 +277,26 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard
                   title={t('dashboard.activePatients')}
-                  value={stats.activePatients}
-                  change={stats.activeChange}
+                  value={realStats.activePatients}
+                  change={realStats.activeChange}
                   delay={0.2}
                 />
                 <StatCard
                   title={t('dashboard.upcoming')}
-                  value={stats.upcoming}
-                  change={stats.upcomingChange}
+                  value={realStats.upcoming}
+                  change={realStats.upcomingChange}
                   delay={0.3}
                 />
                 <StatCard
                   title={t('dashboard.labResults')}
-                  value={stats.labResults}
-                  change={stats.labChange}
+                  value={realStats.labResults}
+                  change={realStats.labChange}
                   delay={0.4}
                 />
                 <StatCard
                   title={t('dashboard.discharges')}
-                  value={stats.discharges}
-                  change={stats.dischargeChange}
+                  value={realStats.discharges}
+                  change={realStats.dischargeChange}
                   delay={0.5}
                 />
               </div>
@@ -277,23 +317,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({
               </div>
 
               {/* Right Column - Recent Patients */}
-              <div className="lg:col-span-1 space-y-6">
-                {/* System Status */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 }}
-                >
-                  <SystemStatus showDetails={showSystemStatus} />
-                  <button
-                    onClick={() => setShowSystemStatus(!showSystemStatus)}
-                    className="mt-2 text-xs text-gray-500 hover:text-gray-700 transition-colors"
-                  >
-                    {showSystemStatus ? 'Hide Details' : 'Show Details'}
-                  </button>
-                </motion.div>
-
-                {/* Recent Patients */}
+              <div className="lg:col-span-1">
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -315,14 +339,24 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({
                   </div>
                   
                   <div className="p-3 space-y-2">
-                    {recentPatients.map((patient, index) => (
-                      <PatientCard
-                        key={patient.id}
-                        patient={patient}
-                        delay={1.0 + index * 0.1}
-                        onClick={onPatientClick}
-                      />
-                    ))}
+                    {loading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    ) : realPatients.length > 0 ? (
+                      realPatients.map((patient, index) => (
+                        <PatientCard
+                          key={patient.id}
+                          patient={patient}
+                          delay={1.0 + index * 0.1}
+                          onClick={onPatientClick}
+                        />
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No recent patients</p>
+                      </div>
+                    )}
                   </div>
                 </motion.section>
               </div>

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Eye, EyeOff, Upload, Lock, Globe, ChevronDown } from 'lucide-react'
 import { useTranslation } from '../../contexts/TranslationContext'
 import { useAuth } from '../../hooks/useAuth'
+import { useToast } from '../../contexts/ToastContext'
 
 interface RegistrationScreenProps {
   onComplete: () => void
@@ -23,6 +24,7 @@ interface FormData {
 const RegistrationScreen: React.FC<RegistrationScreenProps> = ({ onComplete, onBack }) => {
   const { t, currentLanguage, setLanguage } = useTranslation()
   const { registerUser, loading, error } = useAuth()
+  const { showSuccess, showError } = useToast()
   const [currentStep, setCurrentStep] = useState(1)
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState<FormData>({
@@ -72,9 +74,11 @@ const RegistrationScreen: React.FC<RegistrationScreenProps> = ({ onComplete, onB
         is_active: true,
         is_superuser: false
       })
-      onComplete()
+      showSuccess('Account created successfully! Welcome to MamaSafe.')
+      setTimeout(() => onComplete(), 1500)
     } catch (err) {
       console.error('Registration failed:', err)
+      showError('Registration failed. Please check your details and try again.')
     }
   }
 

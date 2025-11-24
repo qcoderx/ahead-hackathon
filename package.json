@@ -1,5 +1,5 @@
 {
-  "name": "mamasafe-drug-analysis",
+  "name": "mamasafe-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,8 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview",
-    "pwa:generate-sw": "vite build --mode pwa"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@types/axios": "^0.9.36",
@@ -19,9 +18,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.47.0",
-    "tailwind-merge": "^2.0.0",
-    "vite-plugin-pwa": "^0.17.5",
-    "workbox-window": "^7.4.0"
+    "tailwind-merge": "^2.0.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.37",

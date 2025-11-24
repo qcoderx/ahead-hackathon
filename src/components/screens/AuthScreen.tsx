@@ -26,15 +26,11 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin, onRegister, onSMSAcces
   ]
 
   const handleLogin = async () => {
-    if (!username.trim() || !password.trim()) {
-      return
-    }
-    
     try {
-      await loginUser(username.trim(), password.trim())
+      await loginUser(username, password)
       onLogin()
-    } catch (e) {
-      console.error('Login failed:', e)
+    } catch (err) {
+      console.error('Login failed:', err)
     }
   }
 
@@ -208,9 +204,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin, onRegister, onSMSAcces
           transition={{ delay: 0.8 }}
         >
           <p className="text-gray-600 text-base">
-            {t('auth.noAccount')} <button className="font-bold text-primary underline hover:text-primary/80 transition-colors" onClick={onRegister}>
-              {t('auth.registerHere')}
-            </button>
+            {t('auth.noAccount')} <button className="font-bold text-primary underline hover:text-primary/80 transition-colors" onClick={onRegister}>{t('auth.registerHere')}</button>
           </p>
         </motion.div>
       </motion.div>

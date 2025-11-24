@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Shield, Phone, CreditCard, Lock } from 'lucide-react'
 import { useTranslation } from '../../contexts/TranslationContext'
+import { useAuth } from '../../hooks/useAuth'
 
 interface PatientPortalScreenProps {
   onBack: () => void
@@ -10,6 +11,7 @@ interface PatientPortalScreenProps {
 
 const PatientPortalScreen: React.FC<PatientPortalScreenProps> = ({ onBack, onAccessRecords }) => {
   const { t, currentLanguage, setLanguage } = useTranslation()
+  const { loginPatient, loading, error } = useAuth()
   const [patientId, setPatientId] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [selectedLanguage, setSelectedLanguage] = useState(currentLanguage.id)
@@ -31,11 +33,15 @@ const PatientPortalScreen: React.FC<PatientPortalScreenProps> = ({ onBack, onAcc
   const handleAccessRecords = async () => {
     if (!patientId.trim() || !phoneNumber.trim()) return
     
-    setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      setIsLoading(true)
+      await loginPatient(patientId.trim())
       onAccessRecords(patientId.trim(), phoneNumber.trim())
-    }, 1500)
+    } catch (err) {
+      console.error('Patient login failed:', err)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const canAccess = patientId.trim() && phoneNumber.trim()

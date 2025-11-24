@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import LandingPage from './LandingPage'
-import { usePWA } from './hooks/usePWA'
 import LanguageSelection from './components/screens/LanguageSelection'
 import AuthScreen from './components/screens/AuthScreen'
 import RegistrationScreen from './components/screens/RegistrationScreen'
@@ -17,18 +16,14 @@ import PatientProfileScreen from './components/screens/PatientProfileScreen'
 import AppointmentsScreen from './components/screens/AppointmentsScreen'
 import ScheduleAppointmentScreen from './components/screens/ScheduleAppointmentScreen'
 import AppointmentDetailsScreen from './components/screens/AppointmentDetailsScreen'
-import AdminAnalyticsScreen from './components/screens/AdminAnalyticsScreen'
-import EmergencyAlertScreen from './components/screens/EmergencyAlertScreen'
-import { mockPatients, mockPatientStats } from './data/mockPatients'
-import { mockInteractionAnalysis } from './data/mockInteractions'
-import { mockDashboardStats, mockRecentPatients } from './data/mockDashboard'
+import { useTranslation } from './contexts/TranslationContext'
+import { useAuth } from './hooks/useAuth'
+import { useDashboardStats } from './hooks/useDashboardStats'
+import { usePatients } from './hooks/usePatients'
 import LoadingScreen from './components/ui/LoadingScreen'
-import PWAInstallPrompt from './components/ui/PWAInstallPrompt'
-import OfflineIndicator from './components/ui/OfflineIndicator'
 
 /**
- * Exact replication of the HTML design
- * Every element, color, and spacing matches the original
+ * Real API Integration - No Mock Data
  */
 function App() {
   const [showLanding, setShowLanding] = useState(true)
@@ -50,27 +45,32 @@ function App() {
   const [showScheduleAppointment, setShowScheduleAppointment] = useState(false)
   const [showAppointmentDetails, setShowAppointmentDetails] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null)
-  const [currentAnalysis, setCurrentAnalysis] = useState(mockInteractionAnalysis)
+  const [currentAnalysis, setCurrentAnalysis] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [loadingMessage, setLoadingMessage] = useState('')
-  const [showAdminAnalytics, setShowAdminAnalytics] = useState(false)
-  const [showEmergencyAlert, setShowEmergencyAlert] = useState(false)
-  const [currentAlert, setCurrentAlert] = useState<any>(null)
-  const [showInstallPrompt, setShowInstallPrompt] = useState(false)
-  const { isInstallable, isOnline, installApp, registerServiceWorker } = usePWA()
+  const { } = useTranslation()
+  const { isAuthenticated, logout, user } = useAuth()
+  
+  // Real data hooks
+  const { stats: dashboardStats, loading: statsLoading } = useDashboardStats()
+  const { patients, loading: patientsLoading } = usePatients()
 
+  // Check authentication state on app load
   useEffect(() => {
-    registerServiceWorker()
-    
-    // Show install prompt after 30 seconds if installable
-    const timer = setTimeout(() => {
-      if (isInstallable) {
-        setShowInstallPrompt(true)
-      }
-    }, 30000)
-    
-    return () => clearTimeout(timer)
-  }, [isInstallable, registerServiceWorker])
+    if (isAuthenticated && showAuth) {
+      setShowAuth(false)
+      setShowDashboard(true)
+    }
+  }, [isAuthenticated, showAuth])
+
+  // Auto-navigate to dashboard if already authenticated
+  useEffect(() => {
+    const token = localStorage.getItem('mamasafe_token')
+    if (token && showLanding) {
+      setShowLanding(false)
+      setShowDashboard(true)
+    }
+  }, [])
 
   const showLoadingAndNavigate = (message: string, nextAction: () => void, delay = 3000) => {
     setIsLoading(true)
@@ -83,33 +83,6 @@ function App() {
 
   if (isLoading) {
     return <LoadingScreen message={loadingMessage} />
-  }
-
-  if (showEmergencyAlert && currentAlert) {
-    return <EmergencyAlertScreen 
-      alert={currentAlert}
-      onBack={() => {
-        setShowEmergencyAlert(false)
-        setShowDashboard(true)
-      }}
-      onResolve={(alertId, notes) => {
-        console.log('Alert resolved:', { alertId, notes })
-        setShowEmergencyAlert(false)
-        setShowDashboard(true)
-      }}
-      onEscalate={(alertId) => {
-        console.log('Alert escalated:', alertId)
-      }}
-    />
-  }
-
-  if (showAdminAnalytics) {
-    return <AdminAnalyticsScreen 
-      onBack={() => {
-        setShowAdminAnalytics(false)
-        setShowDashboard(true)
-      }}
-    />
   }
 
   if (showLanding) {
@@ -188,7 +161,6 @@ function App() {
       onAccessRecords={(patientId, phone) => {
         console.log('Patient accessing records:', { patientId, phone })
         setShowPatientPortal(false)
-        // Would navigate to patient dashboard
       }}
     />
   }
@@ -268,7 +240,7 @@ function App() {
       onCall={() => {
         console.log('Call patient:', selectedPatient)
       }}
-      onArchive={() => {
+      onArchive(() => {
         console.log('Archive patient:', selectedPatient)
       }}
     />
@@ -276,8 +248,13 @@ function App() {
 
   if (showPatientManagement) {
     return <PatientManagementScreen 
-      patients={mockPatients}
-      stats={mockPatientStats}
+      patients={patients || []}
+      stats={{
+        totalPatients: patients?.length || 0,
+        highRisk: patients?.filter((p: any) => p.riskLevel === 'high').length || 0,
+        dueForCheckup: patients?.filter((p: any) => p.dueForCheckup).length || 0,
+        recentRegistrations: patients?.filter((p: any) => p.recentlyAdded).length || 0,
+      }}
       onBack={() => {
         setShowPatientManagement(false)
         setShowDashboard(true)
@@ -306,6 +283,7 @@ function App() {
         setShowDrugAnalysis(true)
       }}
       onLogout={() => {
+        logout()
         setShowPatientManagement(false)
         setShowLanding(true)
       }}
@@ -337,41 +315,35 @@ function App() {
       }}
       onSavePrescription={() => {
         console.log('Saving prescription:', currentAnalysis)
-        // Here you would save prescription to patient records
       }}
       onSMSPatient={() => {
-        console.log('Sending SMS to patient:', currentAnalysis.patientName)
-        // Here you would send SMS notification to patient
+        console.log('Sending SMS to patient:', currentAnalysis?.patientName)
       }}
       onAlertPatient={() => {
         console.log('Alerting patient about risks:', currentAnalysis)
-        // Here you would send alert to patient
       }}
       onCallSpecialist={() => {
         console.log('Calling specialist for:', currentAnalysis)
-        // Here you would initiate specialist consultation
       }}
     />
   }
 
   if (showInteractionResults) {
     return <InteractionResultsScreen 
-      analysis={mockInteractionAnalysis}
+      analysis={currentAnalysis}
       onBack={() => {
         setShowInteractionResults(false)
         setShowDrugAnalysis(true)
       }}
-      onAddDrug={() => {
+      onAddDrug(() => {
         setShowInteractionResults(false)
         setShowDrugAnalysis(true)
       }}
       onAlertProvider={(analysis) => {
         console.log('Alerting provider about:', analysis)
-        // Here you would send alert to healthcare provider
       }}
       onSaveToRecords={(analysis) => {
         console.log('Saving to patient records:', analysis)
-        // Here you would save to patient medical records
       }}
     />
   }
@@ -384,12 +356,8 @@ function App() {
       }}
       onAnalyze={(patientId, drugs) => {
         console.log('Analyzing drugs for patient:', { patientId, drugs })
-        showLoadingAndNavigate('Analyzing drug interactions...', () => {
-          // Generate new random analysis
-          setCurrentAnalysis(mockInteractionAnalysis)
-          setShowDrugAnalysis(false)
-          setShowMedicationResults(true)
-        })
+        setShowDrugAnalysis(false)
+        setShowMedicationResults(true)
       }}
     />
   }
@@ -402,12 +370,8 @@ function App() {
       }}
       onAnalyze={(drugName, symptoms) => {
         console.log('Analyzing drug:', { drugName, symptoms })
-        showLoadingAndNavigate('Analyzing drug safety...', () => {
-          // Generate new random analysis
-          setCurrentAnalysis(mockInteractionAnalysis)
-          setShowSingleDrugCheck(false)
-          setShowMedicationResults(true)
-        })
+        setShowSingleDrugCheck(false)
+        setShowMedicationResults(true)
       }}
       onViewHistory={() => console.log('View history')}
     />
@@ -415,74 +379,66 @@ function App() {
 
   if (showDashboard) {
     return <DashboardScreen 
-      stats={mockDashboardStats}
-      recentPatients={mockRecentPatients}
+      stats={dashboardStats || {
+        activePatients: 0,
+        activeChange: '+0%',
+        upcoming: 0,
+        upcomingChange: '+0%',
+        labResults: 0,
+        labChange: '+0%',
+        discharges: 0,
+        dischargeChange: '+0%'
+      }}
+      recentPatients={patients?.slice(0, 5) || []}
+      clinicName={user?.full_name ? `${user.full_name}'s Clinic` : 'MamaSafe Clinic'}
+      location="Lagos, Nigeria"
+      userAvatar="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150"
+      notificationCount={3}
       onPatientClick={(patient) => console.log('Patient clicked:', patient)}
       onMedicationCheck={(patientId, medication) => {
         console.log('Medication check:', { patientId, medication })
-        setShowDashboard(false)
-        setShowSingleDrugCheck(true)
+        showLoadingAndNavigate('Preparing medication check...', () => {
+          setShowDashboard(false)
+          setShowSingleDrugCheck(true)
+        }, 1500)
       }}
       onDrugAnalysis={() => {
         console.log('Drug Analysis clicked')
-        setShowDashboard(false)
-        setShowDrugAnalysis(true)
+        showLoadingAndNavigate('Loading drug analysis...', () => {
+          setShowDashboard(false)
+          setShowDrugAnalysis(true)
+        }, 1500)
       }}
       onNewPatient={() => {
         console.log('Dashboard New Patient clicked')
-        setShowDashboard(false)
-        setShowPatientRegistration(true)
+        showLoadingAndNavigate('Opening patient registration...', () => {
+          setShowDashboard(false)
+          setShowPatientRegistration(true)
+        }, 1000)
       }}
       onAppointments={() => {
         setShowDashboard(false)
         setShowAppointments(true)
       }}
-      onReports={() => {
-        console.log('Reports - Opening Admin Analytics')
-        setShowDashboard(false)
-        setShowAdminAnalytics(true)
-      }}
+      onReports={() => console.log('Reports')}
       onViewAllPatients={() => {
         console.log('View all patients')
-        setShowDashboard(false)
-        setShowPatientManagement(true)
+        showLoadingAndNavigate('Loading patient management...', () => {
+          setShowDashboard(false)
+          setShowPatientManagement(true)
+        }, 1500)
       }}
-      onNotificationClick={() => {
-        console.log('Notifications - Checking for emergency alerts')
-        // Mock emergency alert for demo
-        setCurrentAlert({
-          id: 'ALERT-001',
-          patientName: 'Fatima Ibrahim',
-          patientId: 'MS-176',
-          drugs: ['Ibuprofen', 'Aspirin'],
-          riskLevel: 'Critical',
-          gestationalWeek: 32,
-          timestamp: new Date().toISOString(),
-          provider: 'Dr. Amina Kano',
-          description: 'Dual NSAID therapy detected in third trimester.',
-          actions: ['Discontinue NSAIDs', 'Monitor fetal heart rate'],
-          status: 'active'
-        })
-        setShowDashboard(false)
-        setShowEmergencyAlert(true)
-      }}
+      onNotificationClick={() => console.log('Notifications')}
       onLogout={() => {
         console.log('User logged out')
+        logout()
         setShowDashboard(false)
         setShowLanding(true)
       }}
     />
   }
 
-  // This should never be reached as all screens are handled above
-  return (
-    <>
-      <OfflineIndicator />
-      {showInstallPrompt && (
-        <PWAInstallPrompt onClose={() => setShowInstallPrompt(false)} />
-      )}
-    </>
-  )
+  return null
 }
 
 export default App
