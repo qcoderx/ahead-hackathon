@@ -11,6 +11,40 @@ const apiClient = axios.create({
   withCredentials: false,
 });
 
+// Offline cache
+const offlineCache = new Map();
+
+// Cache API responses
+const cacheResponse = (key: string, data: any) => {
+  offlineCache.set(key, { data, timestamp: Date.now() });
+  localStorage.setItem(`cache_${key}`, JSON.stringify({ data, timestamp: Date.now() }));
+};
+
+// Get cached response
+const getCachedResponse = (key: string) => {
+  const cached = offlineCache.get(key) || JSON.parse(localStorage.getItem(`cache_${key}`) || 'null');
+  return cached?.data;
+};
+
+// Intercept responses to cache them
+apiClient.interceptors.response.use(
+  (response) => {
+    if (response.config.method === 'get') {
+      cacheResponse(response.config.url || '', response.data);
+    }
+    return response;
+  },
+  async (error) => {
+    if (!navigator.onLine && error.config?.method === 'get') {
+      const cached = getCachedResponse(error.config.url || '');
+      if (cached) {
+        return { data: cached, status: 200, statusText: 'OK (Cached)' };
+      }
+    }
+    throw error;
+  }
+);
+
 // Set JWT token for authorization header
 export function setAuthToken(authToken: string) {
   apiClient.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
@@ -155,10 +189,16 @@ export async function createPatient(patientData: PatientCreate) {
 export async function getAllPatients() {
   try {
     console.log('Making GET request to /patient/all');
-    console.log('Auth header:', apiClient.defaults.headers.common['Authorization']);
-    console.log('Base URL:', apiClient.defaults.baseURL);
     
-    // Try the main endpoint first
+    // Check offline first
+    if (!navigator.onLine) {
+      const cached = getCachedResponse('/patient/all');
+      if (cached) {
+        console.log('Using cached patient data (offline)');
+        return cached;
+      }
+    }
+    
     const response = await apiClient.get('/patient/all');
     console.log('Patient list response:', response.data);
     return response.data;

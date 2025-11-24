@@ -24,6 +24,7 @@ import { usePatients } from "./hooks/usePatients";
 import { usePWA } from "./hooks/usePWA";
 import LoadingScreen from "./components/ui/LoadingScreen";
 import { PWAInstallButton } from "./components/ui/PWAInstallButton";
+import { OfflineIndicator } from "./components/ui/OfflineIndicator";
 import { mapRiskLevel } from "./utils/riskMapper";
 
 /**
@@ -703,6 +704,7 @@ function App() {
 
   return (
     <>
+      <OfflineIndicator />
       <PWAInstallButton />
     </>
   );
