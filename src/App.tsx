@@ -240,7 +240,7 @@ function App() {
       onCall={() => {
         console.log('Call patient:', selectedPatient)
       }}
-      onArchive(() => {
+      onArchive={() => {
         console.log('Archive patient:', selectedPatient)
       }}
     />
@@ -335,7 +335,7 @@ function App() {
         setShowInteractionResults(false)
         setShowDrugAnalysis(true)
       }}
-      onAddDrug(() => {
+      onAddDrug={() => {
         setShowInteractionResults(false)
         setShowDrugAnalysis(true)
       }}
