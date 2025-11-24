@@ -185,6 +185,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin, onRegister, onSMSAcces
             <motion.button 
               className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-14 px-5 w-full bg-transparent text-primary text-base font-bold leading-normal tracking-[0.015em] ring-2 ring-inset ring-primary transition-colors hover:bg-primary/10"
               onClick={() => {
+                // Redirect to SMS simulator
                 window.open('https://sms-simulator.vercel.app', '_blank')
               }}
               initial={{ opacity: 0, y: 20 }}
