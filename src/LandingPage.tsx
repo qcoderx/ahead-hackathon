@@ -246,7 +246,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onPatientAccess }
               Protecting <br/>
               <span className="text-emerald-500">Mothers & Babies</span> <br/>
               <span className="text-purple-600">with AI</span>
-              <div className="text-red-600 font-bold text-xl mt-4">🚀 DEPLOYMENT TEST - VIDEO BUTTON BELOW!</div>
             </motion.h1>
 
             <motion.p 
