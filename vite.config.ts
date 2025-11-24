@@ -24,6 +24,9 @@ export default defineConfig({
           }
         ]
       },
+      devOptions: {
+        enabled: true
+      },
       manifest: {
         name: 'MamaSafe - AI-Powered Pregnancy Care',
         short_name: 'MamaSafe',
@@ -37,12 +40,14 @@ export default defineConfig({
           {
             src: 'images/logo.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           },
           {
             src: 'images/logo.png',
             sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           }
         ]
       }

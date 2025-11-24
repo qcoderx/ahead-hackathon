@@ -275,16 +275,61 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onPatientAccess }
                   <Stethoscope className="h-5 w-5" />
                   For Healthcare Providers
                 </motion.button>
-                <motion.button 
-                  className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-8 py-4 font-bold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                <motion.div 
+                  className="relative group cursor-pointer overflow-hidden rounded-xl bg-gradient-to-br from-purple-600 to-emerald-500 p-1 shadow-lg"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    window.open('https://youtu.be/gq_1sLmYpo8', '_blank')
+                  }}
                 >
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-white">
-                    <ChevronRight className="h-4 w-4" />
+                  <div className="relative flex items-center gap-3 rounded-lg bg-white px-6 py-3">
+                    {/* Video Thumbnail */}
+                    <div className="relative flex h-12 w-16 items-center justify-center rounded-md bg-gradient-to-br from-slate-800 to-slate-900 overflow-hidden">
+                      {/* Fake video thumbnail with grid pattern */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/20 to-purple-400/20" />
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[length:8px_8px]" />
+                      
+                      {/* Play Button */}
+                      <motion.div 
+                        className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-lg"
+                        whileHover={{ scale: 1.1 }}
+                        animate={{ 
+                          boxShadow: [
+                            '0 0 0 0 rgba(16, 185, 129, 0.4)',
+                            '0 0 0 10px rgba(16, 185, 129, 0)',
+                          ]
+                        }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      >
+                        <ChevronRight className="h-4 w-4 text-emerald-600 ml-0.5" />
+                      </motion.div>
+                      
+                      {/* Duration Badge */}
+                      <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1.5 py-0.5 text-xs font-medium text-white">
+                        2:34
+                      </div>
+                    </div>
+                    
+                    {/* Text Content */}
+                    <div className="flex-1">
+                      <div className="font-bold text-slate-800 text-sm">Watch Demo</div>
+                      <div className="text-xs text-slate-500">See MamaSafe in action</div>
+                    </div>
+                    
+                    {/* Live indicator */}
+                    <div className="flex items-center gap-1">
+                      <motion.div 
+                        className="h-2 w-2 rounded-full bg-red-500"
+                        animate={{ opacity: [1, 0.3, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                      <span className="text-xs font-medium text-red-500">LIVE</span>
+                    </div>
                   </div>
-                  Watch Demo
-                </motion.button>
+                </motion.div>
               </div>
               
               {/* Patient Path */}

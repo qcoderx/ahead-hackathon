@@ -21,6 +21,7 @@ import { useAuth } from './hooks/useAuth'
 import { useDashboardStats } from './hooks/useDashboardStats'
 import { usePatients } from './hooks/usePatients'
 import LoadingScreen from './components/ui/LoadingScreen'
+import PWAInstallButton from './components/ui/PWAInstallButton'
 
 /**
  * Real API Integration - No Mock Data
@@ -438,7 +439,11 @@ function App() {
     />
   }
 
-  return null
+  return (
+    <>
+      <PWAInstallButton />
+    </>
+  )
 }
 
 export default App
