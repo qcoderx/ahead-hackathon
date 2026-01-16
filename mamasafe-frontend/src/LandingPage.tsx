@@ -97,17 +97,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onPatientAccess }
       image: "/images/me1.jpg"
     },
     {
-      name: "Shaz",
+      name: "Sanni Shazily",
       role: "Strategist & Lead Frontend Engineer",
       image: "/images/shaz.jpg"
     },
     {
-      name: "Koded",
+      name: "Abdulrahman Raufu",
       role: "Backend Engineer",
       image: "/images/koded.jpg"
     },
     {
-      name: "Ajuwon",
+      name: "Ajuwon Muhammad",
       role: "Medical Student & Frontend Engineer",
       image: "/images/ajuwon.jpg"
     }
