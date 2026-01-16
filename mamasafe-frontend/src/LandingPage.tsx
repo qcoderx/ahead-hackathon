@@ -90,6 +90,29 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onPatientAccess }
     { lang: "Igbo", text: "Ogwu a adighi mma maka nne di ime", color: "text-orange-600" }
   ]
 
+  const teamMembers = [
+    {
+      name: "Lasisi Quadri",
+      role: "Team Lead & Lead Backend Engineer",
+      image: "/images/me1.jpg"
+    },
+    {
+      name: "Shaz",
+      role: "Strategist & Lead Frontend Engineer",
+      image: "/images/shaz.jpg"
+    },
+    {
+      name: "Koded",
+      role: "Backend Engineer",
+      image: "/images/koded.jpg"
+    },
+    {
+      name: "Ajuwon",
+      role: "Medical Student & Frontend Engineer",
+      image: "/images/ajuwon.jpg"
+    }
+  ]
+
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-emerald-100">
       
@@ -569,6 +592,53 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onPatientAccess }
             </div>
           </motion.div>
 
+        </div>
+      </section>
+
+      {/* MEET THE TEAM SECTION */}
+      <section className="bg-slate-50 px-6 py-24">
+        <div className="mx-auto max-w-7xl text-center">
+          <motion.h2 
+            className="text-3xl font-bold text-slate-900 md:text-4xl"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            Meet the Team
+          </motion.h2>
+          <motion.p 
+            className="mx-auto mt-4 max-w-2xl text-slate-500"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+          >
+            The dedicated professionals working to make pregnancy safer for everyone.
+          </motion.p>
+
+          <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+            {teamMembers.map((member, idx) => (
+              <motion.div 
+                key={idx}
+                className="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm transition hover:shadow-md"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                whileHover={{ y: -5 }}
+              >
+                <div className="mb-6 mx-auto h-48 w-48 overflow-hidden rounded-full ring-4 ring-emerald-50 group-hover:ring-emerald-100 transition-all">
+                  <img 
+                    src={member.image} 
+                    alt={member.name}
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                  />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900">{member.name}</h3>
+                <p className="mt-2 text-sm font-medium text-emerald-600">{member.role}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
